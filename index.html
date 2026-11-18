@@ -550,37 +550,24 @@
       color: white;
     }
 
-    .modal input:focus {
-      border-color: var(--red);
-    }
-
     .modal-actions {
       display: flex;
       justify-content: flex-end;
-      gap: 8px;
-      margin-top: 19px;
+      gap: 9px;
+      margin-top: 20px;
     }
 
     .modal-actions button {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-
-    .cancel-button {
-      background: #333;
+      padding: 9px 14px;
+      border: 1px solid #444;
+      border-radius: 7px;
+      background: #292929;
       color: white;
     }
 
-    .confirm-button {
+    .modal-actions .confirm {
+      border-color: var(--red);
       background: var(--red);
-      color: white;
-    }
-
-    .confirm-button:disabled {
-      opacity: 0.4;
     }
 
     .hidden {
@@ -589,49 +576,36 @@
 
     @media (max-width: 650px) {
       .sidebar {
-        width: 215px;
-        min-width: 215px;
-        padding: 13px 10px;
-      }
-
-      .topbar {
-        padding: 0 10px;
-      }
-
-      .topbar-title {
-        font-size: 13px;
-      }
-
-      .topbar-author {
-        right: 10px;
-        font-size: 9px;
-      }
-
-      .messages {
-        padding: 20px 13px;
-      }
-
-      .welcome h1 {
-        font-size: 22px;
-      }
-    }
-
-    @media (max-width: 430px) {
-      .sidebar {
-        width: 175px;
-        min-width: 175px;
-      }
-
-      .brand {
-        font-size: 14px;
+        width: 210px;
+        min-width: 210px;
+        padding: 14px 10px;
       }
 
       .topbar-author {
         display: none;
       }
 
+      .messages {
+        padding: 20px 14px;
+      }
+
       .message {
-        max-width: 96%;
+        max-width: 95%;
+      }
+    }
+
+    @media (max-width: 450px) {
+      .sidebar {
+        width: 175px;
+        min-width: 175px;
+      }
+
+      .brand {
+        font-size: 13px;
+      }
+
+      .topbar-title {
+        font-size: 13px;
       }
     }
   </style>
@@ -641,47 +615,45 @@
 
 <div class="app">
 
-  <!-- LEFT SIDEBAR -->
-
   <aside class="sidebar">
 
     <div class="brand">
       <div class="brand-icon">7</div>
-      <span>Encyclopedia AI</span>
+      <span>7th Grade Encyclopedia AI</span>
     </div>
 
     <button class="new-chat" id="newChatButton">
-      <span>＋</span> New chat
+      <span>+</span> New Chat
     </button>
 
-    <div class="section-label">AI PROVIDERS</div>
+    <div class="section-label">AI SETTINGS</div>
 
     <label class="provider-label" for="providerSelect">
-      Provider:
+      Provider
     </label>
 
     <select id="providerSelect">
-      <option value="Gemini">Google Gemini</option>
+      <option value="Gemini" selected>Google Gemini</option>
       <option value="Encyclopedia">Encyclopedia AI</option>
-      <option value="Groq">Groq</option>
+      <option value="Groq">ChatGPT</option>
       <option value="OpenRouter">OpenRouter</option>
     </select>
 
     <div class="model-area" id="modelArea">
 
       <label class="model-label" for="modelSelect">
-        Model:
+        Model
       </label>
 
       <select id="modelSelect">
-        <option value="gemini-2.5-flash-lite">
-          Gemini 2.5 Flash-Lite
+        <option value="gemini-3.5-flash-lite">
+          Gemini 3.5 Flash-Lite
         </option>
       </select>
 
-      <p class="model-note" id="modelNote">
+      <div class="model-note" id="modelNote">
         Loading available models...
-      </p>
+      </div>
 
     </div>
 
@@ -692,13 +664,10 @@
     <div class="history" id="history"></div>
 
     <div class="sidebar-footer">
-      7th Grade Encyclopedia AI<br>
-      Multiple AI providers · One place
+      7th Grade Encyclopedia AI
     </div>
 
   </aside>
-
-  <!-- MAIN AREA -->
 
   <main class="main">
 
@@ -714,8 +683,6 @@
 
     </header>
 
-    <!-- NORMAL CHAT SCREEN -->
-
     <section class="chat-screen" id="chatScreen">
 
       <div class="messages" id="messages">
@@ -725,16 +692,12 @@
           <div class="welcome-logo">7</div>
 
           <h1>
-            Welcome to
-            <span class="welcome-accent">
-              Encyclopedia AI
-            </span>
+            Welcome to <span class="welcome-accent">Encyclopedia AI</span>
           </h1>
 
           <p>
-            Your personal AI assistant for learning,
-            exploring ideas, answering questions,
-            and discovering something new.
+            Ask questions, explore new topics, and learn something new.
+            Choose an AI provider and model from the sidebar to get started.
           </p>
 
         </div>
@@ -749,14 +712,16 @@
 
           <textarea
             id="messageInput"
+            placeholder="Ask anything..."
             rows="1"
-            placeholder="Message Encyclopedia AI..."
+            autocomplete="off"
           ></textarea>
 
           <button
             class="send-button"
             id="sendButton"
             type="submit"
+            aria-label="Send message"
           >
             ↑
           </button>
@@ -771,18 +736,11 @@
 
     </section>
 
-    <!-- ENCYCLOPEDIA PROVIDER SCREEN -->
-
-    <section
-      class="encyclopedia-screen hidden"
-      id="encyclopediaScreen"
-    >
+    <section class="encyclopedia-screen hidden" id="encyclopediaScreen">
 
       <div class="encyclopedia-heading">
         <h2>Encyclopedia AI</h2>
-        <p>
-          Your dedicated Encyclopedia AI chatbot.
-        </p>
+        <p>Explore the Encyclopedia AI experience below.</p>
       </div>
 
       <div
@@ -796,7 +754,6 @@
 
 </div>
 
-<!-- RENAME / DELETE DIALOG -->
 
 <div class="modal-backdrop hidden" id="modalBackdrop">
 
@@ -812,16 +769,20 @@
       id="modalInput"
       type="text"
       maxlength="70"
-      placeholder="Chat name"
+      autocomplete="off"
     >
 
     <div class="modal-actions">
 
-      <button class="cancel-button" id="cancelModal">
+      <button id="cancelModal" type="button">
         Cancel
       </button>
 
-      <button class="confirm-button" id="confirmModal">
+      <button
+        class="confirm"
+        id="confirmModal"
+        type="button"
+      >
         Save
       </button>
 
@@ -831,42 +792,10 @@
 
 </div>
 
-<!-- ELFSIGHT CHATBOT SCRIPT -->
 
-<script
-  src="https://elfsightcdn.com/platform.js"
-  async
-></script>
+<script src="https://static.elfsight.com/platform/platform.js" async></script>
 
 <script>
-/*
-==========================================================
-                  API CONFIGURATION
-==========================================================
-
-IMPORTANT:
-
-Do NOT paste real API keys into this HTML file.
-
-The browser makes requests to:
-  /api/models?provider=Gemini
-  /api/models?provider=Groq
-  /api/models?provider=OpenRouter
-  /api/chat
-
-Create these backend endpoints on Vercel and store your
-keys in Vercel Environment Variables:
-
-  GEMINI_API_KEY
-  GROQ_API_KEY
-  OPENROUTER_API_KEY
-
-Never publish your real keys in GitHub.
-==========================================================
-*/
-
-
-/* ELEMENTS */
 
 const providerSelect =
   document.getElementById("providerSelect");
@@ -892,6 +821,9 @@ const messages =
 const welcome =
   document.getElementById("welcome");
 
+const historyElement =
+  document.getElementById("history");
+
 const chatForm =
   document.getElementById("chatForm");
 
@@ -904,31 +836,18 @@ const sendButton =
 const errorMessage =
   document.getElementById("errorMessage");
 
-const historyElement =
-  document.getElementById("history");
-
-
-/* STATE */
 
 let chats = [];
 let activeChatId = null;
-let currentModels = [];
 let isSending = false;
 let modalAction = null;
+let currentModels = [];
 
-
-/* FALLBACK MODELS
-
-These are backup choices only.
-The live model endpoint should provide the current
-available models for each provider.
-*/
 
 const fallbackModels = {
+
   Gemini: [
-    "gemini-2.5-flash-lite",
-    "gemini-2.5-flash",
-    "gemini-2.5-pro"
+    "gemini-3.5-flash-lite"
   ],
 
   Groq: [
@@ -940,80 +859,111 @@ const fallbackModels = {
   ],
 
   OpenRouter: []
+
 };
 
 
-/* FRIENDLY MODEL NAMES */
-
 function prettyModelName(id) {
 
-  const names = {
-    "gemini-2.5-flash-lite":
-      "Gemini 2.5 Flash-Lite",
-
-    "gemini-2.5-flash":
-      "Gemini 2.5 Flash",
-
-    "gemini-2.5-pro":
-      "Gemini 2.5 Pro"
-  };
-
-  if (names[id]) return names[id];
-
   return id
-    .split("/")
-    .pop()
+    .replace(/^models\//, "")
     .replace(/[-_]/g, " ")
     .replace(/\b\w/g, letter => letter.toUpperCase());
+
 }
 
 
-/* MODEL LOADING */
-
 async function loadModels(provider) {
 
-  modelSelect.innerHTML =
-    '<option value="">Loading models...</option>';
+  modelSelect.innerHTML = "";
 
-  modelNote.textContent =
-    "Checking available models...";
+  modelNote.textContent = "Loading available models...";
+
+  currentModels = [];
 
   try {
 
     const response = await fetch(
-      "/api/models?provider=" +
-      encodeURIComponent(provider),
-      { cache: "no-store" }
+      "/api/models?provider=" + encodeURIComponent(provider),
+      {
+        method: "GET",
+        headers: {
+          "Accept": "application/json"
+        }
+      }
     );
 
-    const data = await response.json();
+    const responseText = await response.text();
 
-    if (!response.ok) {
-      throw new Error(data.error || "Could not load models.");
+    let data;
+
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      throw new Error(
+        "The models API did not return JSON. Check that /api/models is deployed."
+      );
     }
 
-    let models = Array.isArray(data.models)
-      ? data.models
-      : [];
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Model request failed with status " + response.status
+      );
+    }
 
-    if (models.length === 0) {
-      models = fallbackModels[provider] || [];
+    let models = [];
+
+    if (Array.isArray(data)) {
+
+      models = data;
+
+    } else if (Array.isArray(data.models)) {
+
+      models = data.models;
+
+    } else {
+
+      throw new Error("The models API returned an unexpected format.");
+
+    }
+
+    models = models
+      .map(model => {
+        if (typeof model === "string") return model;
+        if (model && typeof model.id === "string") return model.id;
+        if (model && typeof model.name === "string") return model.name;
+        return null;
+      })
+      .filter(Boolean);
+
+    if (provider === "Gemini") {
+
+      models = models.filter(id => {
+        const normalized = id.replace(/^models\//, "");
+        return /gemini-(3|4)|nano-banana/i.test(normalized);
+      });
+
+      models.sort((a, b) => {
+
+        const aPreferred =
+          /gemini-3\.5-flash-lite/i.test(a) ? 0 : 1;
+
+        const bPreferred =
+          /gemini-3\.5-flash-lite/i.test(b) ? 0 : 1;
+
+        return aPreferred - bPreferred;
+
+      });
+
+    }
+
+    if (!models.length) {
+      throw new Error("No compatible models were returned for this provider.");
     }
 
     currentModels = models;
 
     modelSelect.innerHTML = "";
-
-    if (!models.length) {
-
-      modelSelect.innerHTML =
-        '<option value="">No models available</option>';
-
-      modelNote.textContent =
-        data.error || "No models were returned by this provider.";
-
-      return;
-    }
 
     models.forEach(id => {
 
@@ -1026,25 +976,27 @@ async function loadModels(provider) {
 
     });
 
-    // Gemini default model
     if (
       provider === "Gemini" &&
-      models.includes("gemini-2.5-flash-lite")
+      models.includes("gemini-3.5-flash-lite")
     ) {
-      modelSelect.value = "gemini-2.5-flash-lite";
+
+      modelSelect.value = "gemini-3.5-flash-lite";
+
     }
 
     modelNote.textContent =
-      models.length + " available model(s)";
+      models.length + " models available.";
 
   } catch (error) {
 
-    const models = fallbackModels[provider] || [];
+    const fallback = fallbackModels[provider] || [];
 
-    currentModels = models;
+    currentModels = fallback;
+
     modelSelect.innerHTML = "";
 
-    models.forEach(id => {
+    fallback.forEach(id => {
 
       const option = document.createElement("option");
 
@@ -1055,13 +1007,21 @@ async function loadModels(provider) {
 
     });
 
-    if (provider === "Gemini") {
-      modelSelect.value = "gemini-2.5-flash-lite";
+    if (
+      provider === "Gemini" &&
+      fallback.includes("gemini-3.5-flash-lite")
+    ) {
+
+      modelSelect.value = "gemini-3.5-flash-lite";
+
     }
 
-    modelNote.textContent =
-      "Live model list unavailable. Check your backend.";
+    modelNote.textContent = fallback.length
+      ? "Live list failed. Backup models shown. " + error.message
+      : "Could not load models: " + error.message;
+
   }
+
 }
 
 
@@ -1080,6 +1040,7 @@ providerSelect.addEventListener("change", async () => {
     encyclopediaScreen.classList.remove("hidden");
 
     return;
+
   }
 
   encyclopediaScreen.classList.add("hidden");
@@ -1106,6 +1067,7 @@ function saveChats() {
 function getActiveChat() {
 
   return chats.find(chat => chat.id === activeChatId);
+
 }
 
 
@@ -1246,6 +1208,7 @@ function renderMessages() {
     welcome.classList.remove("hidden");
 
     return;
+
   }
 
   welcome.classList.add("hidden");
@@ -1351,6 +1314,7 @@ async function sendMessage(event) {
     showError("Please select an available model.");
 
     return;
+
   }
 
   const chat = getActiveChat();
@@ -1641,7 +1605,7 @@ function loadSavedChats() {
 
 loadSavedChats();
 
-loadModels("Gemini");
+loadModels(providerSelect.value);
 
 </script>
 
