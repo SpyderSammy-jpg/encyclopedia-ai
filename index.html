@@ -15,22 +15,24 @@
 :root {
   --bg: #101010;
   --panel: #181818;
-  --panel2: #222;
+  --panel2: #242424;
   --text: #f5f5f5;
   --muted: #999;
   --red: #e63946;
-  --border: #303030;
+  --border: #333;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
+  height: 100vh;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: Arial, sans-serif;
-  height: 100vh;
-  overflow: hidden;
 }
 
 button, input, textarea, select {
@@ -41,6 +43,11 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
 .app {
   display: flex;
   height: 100vh;
@@ -48,6 +55,7 @@ button {
 
 .sidebar {
   width: 270px;
+  flex-shrink: 0;
   background: #151515;
   border-right: 1px solid var(--border);
   padding: 16px;
@@ -57,12 +65,14 @@ button {
 }
 
 .brand {
-  font-size: 21px;
+  font-size: 22px;
   font-weight: bold;
   padding: 10px 5px;
 }
 
-.brand span { color: var(--red); }
+.brand span {
+  color: var(--red);
+}
 
 .primary {
   background: var(--red);
@@ -114,11 +124,11 @@ select:focus, input:focus, textarea:focus {
   gap: 5px;
   padding: 9px;
   border-radius: 8px;
-  cursor: pointer;
   margin-bottom: 4px;
 }
 
-.history-item:hover, .history-item.active {
+.history-item:hover,
+.history-item.active {
   background: var(--panel2);
 }
 
@@ -128,13 +138,14 @@ select:focus, input:focus, textarea:focus {
   white-space: nowrap;
   text-overflow: ellipsis;
   font-size: 13px;
+  cursor: pointer;
 }
 
 .history-actions button {
   background: transparent;
   color: #aaa;
   border: 0;
-  padding: 3px;
+  font-size: 17px;
 }
 
 .main {
@@ -153,8 +164,6 @@ select:focus, input:focus, textarea:focus {
   justify-content: space-between;
 }
 
-.topbar strong { font-size: 16px; }
-
 .messages {
   flex: 1;
   overflow-y: auto;
@@ -167,13 +176,18 @@ select:focus, input:focus, textarea:focus {
   max-width: 600px;
 }
 
-.welcome h1 { font-size: 34px; }
-.welcome p { color: var(--muted); }
+.welcome h1 {
+  font-size: 34px;
+}
+
+.welcome p {
+  color: var(--muted);
+}
 
 .message {
   display: flex;
   gap: 13px;
-  margin: 22px 0;
+  margin: 24px 0;
   align-items: flex-start;
 }
 
@@ -184,7 +198,7 @@ select:focus, input:focus, textarea:focus {
   display: grid;
   place-items: center;
   background: var(--panel2);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
 }
 
@@ -199,7 +213,10 @@ select:focus, input:focus, textarea:focus {
   flex: 1;
 }
 
-.content p:first-child { margin-top: 0; }
+.content p:first-child {
+  margin-top: 0;
+}
+
 .content pre {
   background: #090909;
   border: 1px solid var(--border);
@@ -228,7 +245,8 @@ select:focus, input:focus, textarea:focus {
   width: 100%;
 }
 
-.content td, .content th {
+.content td,
+.content th {
   border: 1px solid var(--border);
   padding: 8px;
 }
@@ -319,7 +337,31 @@ select:focus, input:focus, textarea:focus {
   padding: 5px;
 }
 
-#fileInput { display: none; }
+#fileInput {
+  display: none;
+}
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 8px 0;
+}
+
+.attachment {
+  background: #292929;
+  border: 1px solid #444;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.attachment button {
+  background: none;
+  color: white;
+  border: 0;
+  margin-left: 5px;
+}
 
 .modal {
   position: fixed;
@@ -332,31 +374,57 @@ select:focus, input:focus, textarea:focus {
   z-index: 10;
 }
 
-.modal.open { display: flex; }
+.modal.open {
+  display: flex;
+}
 
 .modal-box {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
-  width: min(700px, 100%);
+  width: min(800px, 100%);
+  max-height: 90vh;
+  overflow: auto;
 }
 
 .modal-box textarea {
-  min-height: 260px;
+  min-height: 300px;
   margin: 12px 0;
   resize: vertical;
 }
 
+.preview-frame {
+  width: 100%;
+  height: 400px;
+  background: white;
+  border: 0;
+  border-radius: 8px;
+}
+
 @media(max-width:700px) {
-  .sidebar { width: 190px; padding: 9px; }
-  .messages { padding: 15px; }
-  .composer-area { padding: 8px; }
+  .sidebar {
+    width: 190px;
+    padding: 9px;
+  }
+
+  .messages {
+    padding: 15px;
+  }
+
+  .composer-area {
+    padding: 8px;
+  }
 }
 
 @media(max-width:500px) {
-  .sidebar { width: 145px; }
-  .brand { font-size: 16px; }
+  .sidebar {
+    width: 145px;
+  }
+
+  .brand {
+    font-size: 16px;
+  }
 }
 </style>
 </head>
@@ -365,11 +433,13 @@ select:focus, input:focus, textarea:focus {
 <div class="app">
 
 <aside class="sidebar">
+
   <div class="brand">AI <span>Service</span></div>
 
   <button class="primary" onclick="newChat()">+ New Chat</button>
 
   <div class="section-label">Provider</div>
+
   <select id="provider" onchange="providerChanged()">
     <option value="Gemini">Google Gemini</option>
     <option value="Groq">ChatGPT</option>
@@ -383,6 +453,7 @@ select:focus, input:focus, textarea:focus {
   </select>
 
   <div class="section-label">Model</div>
+
   <select id="model">
     <option value="">Loading models...</option>
   </select>
@@ -391,48 +462,78 @@ select:focus, input:focus, textarea:focus {
   <div class="history" id="history"></div>
 
   <button class="secondary" onclick="openWriter()">Writing Editor</button>
+
   <div class="status" id="modelStatus">Loading models...</div>
+
 </aside>
 
 <main class="main">
+
   <header class="topbar">
     <strong id="chatTitle">New Chat</strong>
     <button class="secondary" onclick="newChat()">New Chat</button>
   </header>
 
   <section class="messages" id="messages">
-    <div class="welcome" id="welcome">
+    <div class="welcome">
       <h1>What can I help with?</h1>
       <p>Ask anything. Let's get started.</p>
     </div>
   </section>
 
   <section class="composer-area">
+
     <div class="composer">
+
       <div class="toolbar">
         <button onclick="formatText('**','**')"><b>B</b></button>
         <button onclick="formatText('*','*')"><i>I</i></button>
         <button onclick="formatText('<u>','</u>')"><u>U</u></button>
-        <button onclick="formatText('## ','')">H</button>
+        <button onclick="formatText('## ','')">Heading</button>
         <button onclick="formatText('- ','')">• List</button>
         <button onclick="formatText('1. ','')">1. List</button>
         <button onclick="formatText('> ','')">Quote</button>
         <button onclick="formatText('\n```\n','\n```\n')">Code</button>
       </div>
 
-      <textarea id="prompt" placeholder="Message AI Service..." onkeydown="handleEnter(event)"></textarea>
+      <textarea
+        id="prompt"
+        placeholder="Message AI Service..."
+        onkeydown="handleEnter(event)"
+      ></textarea>
+
+      <div class="attachments" id="attachments"></div>
 
       <div class="composer-bottom">
+
         <div>
-          <button class="upload" onclick="document.getElementById('fileInput').click()">+ Upload</button>
-          <input id="fileInput" type="file" multiple accept=".txt,.md,.csv,.json,.pdf,.png,.jpg,.jpeg" onchange="handleFiles(event)">
-          <span id="fileLabel" class="status"></span>
+          <button
+            class="upload"
+            onclick="document.getElementById('fileInput').click()"
+          >+ Upload</button>
+
+          <input
+            id="fileInput"
+            type="file"
+            multiple
+            onchange="handleFiles(event)"
+          >
         </div>
-        <button class="send" id="sendButton" onclick="sendMessage()">Send ↑</button>
+
+        <button class="send" id="sendButton" onclick="sendMessage()">
+          Send ↑
+        </button>
+
       </div>
+
     </div>
-    <div class="status">AI responses may contain mistakes. Check important information.</div>
+
+    <div class="status">
+      AI responses may contain mistakes. Check important information.
+    </div>
+
   </section>
+
 </main>
 </div>
 
@@ -442,6 +543,19 @@ select:focus, input:focus, textarea:focus {
     <textarea id="writerText" placeholder="Write something here..."></textarea>
     <button class="secondary" onclick="insertWriting()">Insert into chat</button>
     <button class="primary" onclick="closeWriter()">Close</button>
+  </div>
+</div>
+
+<div class="modal" id="previewModal">
+  <div class="modal-box">
+    <h2>Code Preview</h2>
+    <iframe
+      id="previewFrame"
+      class="preview-frame"
+      sandbox
+      title="Code preview"
+    ></iframe>
+    <button class="primary" onclick="closePreview()">Close Preview</button>
   </div>
 </div>
 
@@ -460,7 +574,8 @@ let busy = false;
 const $ = id => document.getElementById(id);
 
 function makeId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  return Date.now().toString(36) +
+    Math.random().toString(36).slice(2, 8);
 }
 
 function currentChat() {
@@ -468,18 +583,24 @@ function currentChat() {
 }
 
 function saveChats() {
-  localStorage.setItem("ai_service_chats", JSON.stringify(chats));
+  localStorage.setItem(
+    "ai_service_chats",
+    JSON.stringify(chats)
+  );
 }
 
 function loadChats() {
   try {
-    chats = JSON.parse(localStorage.getItem("ai_service_chats") || "[]");
+    chats = JSON.parse(
+      localStorage.getItem("ai_service_chats") || "[]"
+    );
   } catch {
     chats = [];
   }
 
   if (chats.length) {
     currentChatId = chats[0].id;
+    $("provider").value = chats[0].provider || "Gemini";
     renderChat();
   } else {
     newChat();
@@ -499,9 +620,11 @@ function newChat() {
 
   chats.unshift(chat);
   currentChatId = chat.id;
+
   saveChats();
   renderChat();
   renderHistory();
+
   $("prompt").focus();
 }
 
@@ -510,7 +633,9 @@ function renderHistory() {
 
   chats.forEach(chat => {
     const item = document.createElement("div");
-    item.className = "history-item" +
+
+    item.className =
+      "history-item" +
       (chat.id === currentChatId ? " active" : "");
 
     const title = document.createElement("span");
@@ -520,8 +645,8 @@ function renderHistory() {
     title.onclick = () => {
       currentChatId = chat.id;
       $("provider").value = chat.provider || "Gemini";
-      updateModels(chat.model);
       renderChat();
+      updateModels(chat.model);
       renderHistory();
     };
 
@@ -533,14 +658,22 @@ function renderHistory() {
 
     menu.onclick = event => {
       event.stopPropagation();
-      const choice = prompt("Type rename or delete:");
+
+      const choice = prompt(
+        "Type rename or delete:"
+      );
 
       if (choice === "rename") {
-        const name = prompt("New chat name:", chat.title);
+        const name = prompt(
+          "New chat name:",
+          chat.title
+        );
+
         if (name && name.trim()) {
           chat.title = name.trim();
           saveChats();
           renderHistory();
+
           if (chat.id === currentChatId) {
             $("chatTitle").textContent = chat.title;
           }
@@ -549,9 +682,13 @@ function renderHistory() {
 
       if (choice === "delete") {
         if (confirm("Delete this chat?")) {
-          chats = chats.filter(c => c.id !== chat.id);
+          chats = chats.filter(
+            current => current.id !== chat.id
+          );
+
           if (currentChatId === chat.id) {
             currentChatId = null;
+
             if (chats.length) {
               currentChatId = chats[0].id;
             } else {
@@ -559,8 +696,13 @@ function renderHistory() {
               newChat();
               return;
             }
+
+            $("provider").value =
+              currentChat().provider || "Gemini";
+
             renderChat();
           }
+
           saveChats();
           renderHistory();
         }
@@ -569,13 +711,15 @@ function renderHistory() {
 
     actions.appendChild(menu);
     item.append(title, actions);
+
     $("history").appendChild(item);
   });
 }
 
 function renderMarkdown(text) {
-  const html = marked.parse(text || "");
-  return DOMPurify.sanitize(html);
+  return DOMPurify.sanitize(
+    marked.parse(text || "")
+  );
 }
 
 function renderChat() {
@@ -590,11 +734,26 @@ function renderChat() {
       <div class="welcome">
         <h1>What can I help with?</h1>
         <p>Ask anything. Let's get started.</p>
-      </div>`;
+      </div>
+    `;
     return;
   }
 
-  chat.messages.forEach(message => addMessage(message.role, message.content));
+  chat.messages.forEach(message => {
+    let display = message.content;
+
+    if (Array.isArray(display)) {
+      display = display
+        .map(part => {
+          if (part.type === "text") return part.text;
+          if (part.type === "image_url") return "[Image attached]";
+          return "";
+        })
+        .join("\n");
+    }
+
+    addMessage(message.role, display);
+  });
 }
 
 function addMessage(role, content) {
@@ -611,24 +770,32 @@ function addMessage(role, content) {
 
   body.querySelectorAll("pre").forEach(pre => {
     const code = pre.querySelector("code");
+
     const toolbar = document.createElement("div");
     toolbar.className = "code-toolbar";
 
     const copy = document.createElement("button");
     copy.textContent = "Copy code";
-    copy.onclick = () => {
-      navigator.clipboard.writeText(code?.innerText || pre.innerText);
-      copy.textContent = "Copied!";
-      setTimeout(() => copy.textContent = "Copy code", 1200);
-    };
 
-    toolbar.appendChild(copy);
+    copy.onclick = async () => {
+      await navigator.clipboard.writeText(
+        code?.innerText || pre.innerText
+      );
+
+      copy.textContent = "Copied!";
+      setTimeout(() => {
+        copy.textContent = "Copy code";
+      }, 1200);
+    };
 
     const preview = document.createElement("button");
     preview.textContent = "Preview";
-    preview.onclick = () => previewCode(code?.innerText || pre.innerText);
-    toolbar.appendChild(preview);
 
+    preview.onclick = () => {
+      previewCode(code?.innerText || pre.innerText);
+    };
+
+    toolbar.append(copy, preview);
     pre.before(toolbar);
   });
 
@@ -637,15 +804,25 @@ function addMessage(role, content) {
   });
 
   message.append(avatar, body);
+
   $("messages").appendChild(message);
-  $("messages").scrollTop = $("messages").scrollHeight;
+  $("messages").scrollTop =
+    $("messages").scrollHeight;
 }
 
 function previewCode(code) {
-  const modal = $("writerModal");
-  $("writerText").value = code;
-  modal.classList.add("open");
-  alert("Preview is available in the editor. Only run code you understand.");
+  if (!/<\s*(html|!doctype|body|div|script|style|h[1-6])\b/i.test(code)) {
+    alert("Live preview currently supports HTML code.");
+    return;
+  }
+
+  $("previewFrame").srcdoc = code;
+  $("previewModal").classList.add("open");
+}
+
+function closePreview() {
+  $("previewModal").classList.remove("open");
+  $("previewFrame").srcdoc = "";
 }
 
 function formatText(before, after) {
@@ -661,11 +838,15 @@ function formatText(before, after) {
 
   input.focus();
   input.selectionStart = start + before.length;
-  input.selectionEnd = start + before.length + selected.length;
+  input.selectionEnd =
+    start + before.length + selected.length;
 }
 
 function handleEnter(event) {
-  if (event.key === "Enter" && !event.shiftKey) {
+  if (
+    event.key === "Enter" &&
+    !event.shiftKey
+  ) {
     event.preventDefault();
     sendMessage();
   }
@@ -678,20 +859,25 @@ async function loadModels() {
     const response = await fetch("/api/models");
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.error || "Model loading failed");
+    if (!response.ok) {
+      throw new Error(data.error || "Could not load models.");
+    }
 
     groups = data.groups || {};
     updateModels();
 
     $("modelStatus").textContent = "Models loaded";
+
   } catch (error) {
     $("modelStatus").textContent = error.message;
-    $("model").innerHTML = '<option value="">Could not load models</option>';
+    $("model").innerHTML =
+      '<option value="">Could not load models</option>';
   }
 }
 
 function providerChanged() {
   updateModels();
+
   const chat = currentChat();
 
   if (chat) {
@@ -708,20 +894,27 @@ function updateModels(preferredModel = "") {
   $("model").innerHTML = "";
 
   if (!models.length) {
-    $("model").add(new Option("No available models", ""));
+    $("model").add(
+      new Option("No available models", "")
+    );
     return;
   }
 
   models.forEach(model => {
-    const option = new Option(model.name, model.id);
-    $("model").add(option);
+    $("model").add(
+      new Option(model.name, model.id)
+    );
   });
 
-  if (preferredModel && models.some(m => m.id === preferredModel)) {
+  if (
+    preferredModel &&
+    models.some(model => model.id === preferredModel)
+  ) {
     $("model").value = preferredModel;
   }
 
   const chat = currentChat();
+
   if (chat) {
     chat.provider = provider;
     chat.model = $("model").value;
@@ -729,56 +922,198 @@ function updateModels(preferredModel = "") {
   }
 }
 
+async function fileToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () =>
+      reject(new Error("Could not read " + file.name));
+
+    reader.readAsDataURL(file);
+  });
+}
+
+function handleFiles(event) {
+  const incoming = Array.from(
+    event.target.files || []
+  );
+
+  selectedFiles.push(...incoming);
+
+  renderAttachments();
+  event.target.value = "";
+}
+
+function renderAttachments() {
+  $("attachments").innerHTML = "";
+
+  selectedFiles.forEach((file, index) => {
+    const item = document.createElement("div");
+    item.className = "attachment";
+
+    const name = document.createElement("span");
+    name.textContent =
+      file.name + " (" +
+      (file.size / 1024).toFixed(1) +
+      " KB)";
+
+    const remove = document.createElement("button");
+    remove.textContent = "×";
+
+    remove.onclick = () => {
+      selectedFiles.splice(index, 1);
+      renderAttachments();
+    };
+
+    item.append(name, remove);
+    $("attachments").appendChild(item);
+  });
+}
+
 async function sendMessage() {
   if (busy) return;
 
   const text = $("prompt").value.trim();
-  if (!text) return;
+
+  if (!text && !selectedFiles.length) return;
 
   const provider = $("provider").value;
   const model = $("model").value;
 
   if (!model) {
-    alert("Please select an available model.");
+    alert("Please select a model.");
     return;
   }
 
   const chat = currentChat();
   if (!chat) return;
 
-  if (chat.messages.length === 0) {
-    chat.title = text.slice(0, 35);
-  }
-
-  chat.provider = provider;
-  chat.model = model;
-
-  chat.messages.push({ role: "user", content: text });
-  addMessage("user", text);
-  $("prompt").value = "";
-  renderHistory();
-  saveChats();
-
   busy = true;
   $("sendButton").disabled = true;
-  $("sendButton").textContent = "Thinking...";
-
-  const loading = document.createElement("div");
-  loading.className = "message";
-  loading.innerHTML = '<div class="avatar">AI</div><div class="content">Thinking...</div>';
-  $("messages").appendChild(loading);
+  $("sendButton").textContent = "Preparing...";
 
   try {
+    const parts = [];
+
+    if (text) {
+      parts.push({
+        type: "text",
+        text
+      });
+    }
+
+    for (const file of selectedFiles) {
+      const type = file.type || "application/octet-stream";
+
+      if (type.startsWith("image/")) {
+        const allowed = [
+          "image/png",
+          "image/jpeg",
+          "image/webp",
+          "image/gif"
+        ];
+
+        if (!allowed.includes(type)) {
+          parts.push({
+            type: "text",
+            text:
+              "Image " + file.name +
+              " has an unsupported image format."
+          });
+          continue;
+        }
+
+        const dataURL = await fileToDataURL(file);
+
+        parts.push({
+          type: "text",
+          text: "Attached image: " + file.name
+        });
+
+        parts.push({
+          type: "image_url",
+          image_url: {
+            url: dataURL
+          }
+        });
+
+      } else if (
+        type.startsWith("text/") ||
+        /\.(txt|md|csv|json|js|jsx|ts|tsx|html|css|xml|yaml|yml|py|java|c|cpp|sql|log|sh)$/i.test(file.name)
+      ) {
+        const contents = await file.text();
+
+        parts.push({
+          type: "text",
+          text:
+            "\n\nATTACHED FILE: " + file.name +
+            "\nCONTENTS:\n" + contents
+        });
+
+      } else {
+        parts.push({
+          type: "text",
+          text:
+            "\n\nThe user attached " + file.name +
+            " (" + type +
+            "). This file format is not yet supported for content extraction."
+        });
+      }
+    }
+
+    const displayText =
+      text ||
+      "Attached " + selectedFiles.length + " file(s).";
+
+    if (chat.messages.length === 0) {
+      chat.title = displayText.slice(0, 35);
+    }
+
     const apiProvider =
-      provider === "Gemini" ? "Gemini" :
-      provider === "ChatGPT" ? "Groq" :
-      provider === "Groq" ? "Groq" :
-      provider === "Gemini" ? "Gemini" :
-      "OpenRouter";
+      provider === "Gemini"
+        ? "Gemini"
+        : provider === "Groq"
+          ? "Groq"
+          : "OpenRouter";
+
+    chat.provider = provider;
+    chat.model = model;
+
+    const userMessage = {
+      role: "user",
+      content:
+        parts.length === 1 && parts[0].type === "text"
+          ? parts[0].text
+          : parts
+    };
+
+    chat.messages.push(userMessage);
+
+    addMessage("user", displayText);
+
+    $("prompt").value = "";
+    selectedFiles = [];
+    renderAttachments();
+
+    saveChats();
+    renderHistory();
+
+    const loading = document.createElement("div");
+    loading.className = "message";
+    loading.innerHTML =
+      '<div class="avatar">AI</div>' +
+      '<div class="content">Thinking...</div>';
+
+    $("messages").appendChild(loading);
+
+    $("sendButton").textContent = "Thinking...";
 
     const response = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
         provider: apiProvider,
         model,
@@ -788,11 +1123,13 @@ async function sendMessage() {
 
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || "The request failed.");
-    }
-
     loading.remove();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "The request failed."
+      );
+    }
 
     chat.messages.push({
       role: "assistant",
@@ -803,22 +1140,15 @@ async function sendMessage() {
     saveChats();
 
   } catch (error) {
-    loading.remove();
-    addMessage("assistant", "**Error:** " + error.message);
+    addMessage(
+      "assistant",
+      "**Error:** " + error.message
+    );
+
   } finally {
     busy = false;
     $("sendButton").disabled = false;
     $("sendButton").textContent = "Send ↑";
-  }
-}
-
-function handleFiles(event) {
-  selectedFiles = Array.from(event.target.files || []);
-
-  if (selectedFiles.length) {
-    $("fileLabel").textContent =
-      selectedFiles.map(file => file.name).join(", ");
-    alert("File selection is ready, but file contents are not yet sent to the AI. Upload processing needs its own backend route.");
   }
 }
 
@@ -831,13 +1161,19 @@ function closeWriter() {
 }
 
 function insertWriting() {
+  const writing = $("writerText").value;
+
   $("prompt").value +=
-    ($("prompt").value ? "\n\n" : "") + $("writerText").value;
+    ($("prompt").value ? "\n\n" : "") +
+    writing;
+
   closeWriter();
+  $("prompt").focus();
 }
 
 $("model").addEventListener("change", () => {
   const chat = currentChat();
+
   if (chat) {
     chat.model = $("model").value;
     saveChats();
