@@ -22,9 +22,7 @@
   --border: #333;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -35,23 +33,11 @@ body {
   font-family: Arial, sans-serif;
 }
 
-button, input, textarea, select {
-  font: inherit;
-}
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .5; cursor: not-allowed; }
 
-button {
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.app {
-  display: flex;
-  height: 100vh;
-}
+.app { display: flex; height: 100vh; }
 
 .sidebar {
   width: 270px;
@@ -70,9 +56,7 @@ button:disabled {
   padding: 10px 5px;
 }
 
-.brand span {
-  color: var(--red);
-}
+.brand span { color: var(--red); }
 
 .primary {
   background: var(--red);
@@ -113,10 +97,7 @@ select:focus, input:focus, textarea:focus {
   margin-top: 7px;
 }
 
-.history {
-  flex: 1;
-  overflow-y: auto;
-}
+.history { flex: 1; overflow-y: auto; }
 
 .history-item {
   display: flex;
@@ -128,9 +109,7 @@ select:focus, input:focus, textarea:focus {
 }
 
 .history-item:hover,
-.history-item.active {
-  background: var(--panel2);
-}
+.history-item.active { background: var(--panel2); }
 
 .history-title {
   flex: 1;
@@ -176,13 +155,8 @@ select:focus, input:focus, textarea:focus {
   max-width: 600px;
 }
 
-.welcome h1 {
-  font-size: 34px;
-}
-
-.welcome p {
-  color: var(--muted);
-}
+.welcome h1 { font-size: 34px; }
+.welcome p { color: var(--muted); }
 
 .message {
   display: flex;
@@ -202,9 +176,7 @@ select:focus, input:focus, textarea:focus {
   font-weight: bold;
 }
 
-.message.user .avatar {
-  background: var(--red);
-}
+.message.user .avatar { background: var(--red); }
 
 .content {
   line-height: 1.65;
@@ -213,9 +185,7 @@ select:focus, input:focus, textarea:focus {
   flex: 1;
 }
 
-.content p:first-child {
-  margin-top: 0;
-}
+.content p:first-child { margin-top: 0; }
 
 .content pre {
   background: #090909;
@@ -225,9 +195,7 @@ select:focus, input:focus, textarea:focus {
   overflow-x: auto;
 }
 
-.content code {
-  font-family: Consolas, monospace;
-}
+.content code { font-family: Consolas, monospace; }
 
 .content :not(pre) > code {
   background: #292929;
@@ -337,9 +305,7 @@ select:focus, input:focus, textarea:focus {
   padding: 5px;
 }
 
-#fileInput {
-  display: none;
-}
+#fileInput { display: none; }
 
 .attachments {
   display: flex;
@@ -374,9 +340,7 @@ select:focus, input:focus, textarea:focus {
   z-index: 10;
 }
 
-.modal.open {
-  display: flex;
-}
+.modal.open { display: flex; }
 
 .modal-box {
   background: var(--panel);
@@ -403,28 +367,14 @@ select:focus, input:focus, textarea:focus {
 }
 
 @media(max-width:700px) {
-  .sidebar {
-    width: 190px;
-    padding: 9px;
-  }
-
-  .messages {
-    padding: 15px;
-  }
-
-  .composer-area {
-    padding: 8px;
-  }
+  .sidebar { width: 190px; padding: 9px; }
+  .messages { padding: 15px; }
+  .composer-area { padding: 8px; }
 }
 
 @media(max-width:500px) {
-  .sidebar {
-    width: 145px;
-  }
-
-  .brand {
-    font-size: 16px;
-  }
+  .sidebar { width: 145px; }
+  .brand { font-size: 16px; }
 }
 </style>
 </head>
@@ -433,7 +383,6 @@ select:focus, input:focus, textarea:focus {
 <div class="app">
 
 <aside class="sidebar">
-
   <div class="brand">AI <span>Service</span></div>
 
   <button class="primary" onclick="newChat()">+ New Chat</button>
@@ -464,11 +413,9 @@ select:focus, input:focus, textarea:focus {
   <button class="secondary" onclick="openWriter()">Writing Editor</button>
 
   <div class="status" id="modelStatus">Loading models...</div>
-
 </aside>
 
 <main class="main">
-
   <header class="topbar">
     <strong id="chatTitle">New Chat</strong>
     <button class="secondary" onclick="newChat()">New Chat</button>
@@ -482,7 +429,6 @@ select:focus, input:focus, textarea:focus {
   </section>
 
   <section class="composer-area">
-
     <div class="composer">
 
       <div class="toolbar">
@@ -505,7 +451,6 @@ select:focus, input:focus, textarea:focus {
       <div class="attachments" id="attachments"></div>
 
       <div class="composer-bottom">
-
         <div>
           <button
             class="upload"
@@ -523,17 +468,13 @@ select:focus, input:focus, textarea:focus {
         <button class="send" id="sendButton" onclick="sendMessage()">
           Send ↑
         </button>
-
       </div>
-
     </div>
 
     <div class="status">
       AI responses may contain mistakes. Check important information.
     </div>
-
   </section>
-
 </main>
 </div>
 
@@ -659,15 +600,10 @@ function renderHistory() {
     menu.onclick = event => {
       event.stopPropagation();
 
-      const choice = prompt(
-        "Type rename or delete:"
-      );
+      const choice = prompt("Type rename or delete:");
 
       if (choice === "rename") {
-        const name = prompt(
-          "New chat name:",
-          chat.title
-        );
+        const name = prompt("New chat name:", chat.title);
 
         if (name && name.trim()) {
           chat.title = name.trim();
@@ -971,6 +907,49 @@ function renderAttachments() {
   });
 }
 
+async function extractDocument(file) {
+  const dataURL = await fileToDataURL(file);
+  const base64 = dataURL.split(",")[1];
+
+  if (!base64) {
+    throw new Error("Could not encode " + file.name);
+  }
+
+  // Keep requests small enough for the current Vercel function setup.
+  if (base64.length > 3500000) {
+    throw new Error(
+      file.name + " is too large for the current document reader. Try a smaller file."
+    );
+  }
+
+  const response = await fetch("/api/extract", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      files: [{
+        name: file.name,
+        data: base64
+      }]
+    })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.success) {
+    throw new Error(data.error || "Could not extract " + file.name);
+  }
+
+  const result = data.files?.[0];
+
+  if (!result?.success) {
+    throw new Error(result?.error || "Could not read " + file.name);
+  }
+
+  return result.text || "";
+}
+
 async function sendMessage() {
   if (busy) return;
 
@@ -1005,6 +984,7 @@ async function sendMessage() {
 
     for (const file of selectedFiles) {
       const type = file.type || "application/octet-stream";
+      const extension = file.name.split(".").pop().toLowerCase();
 
       if (type.startsWith("image/")) {
         const allowed = [
@@ -1017,9 +997,7 @@ async function sendMessage() {
         if (!allowed.includes(type)) {
           parts.push({
             type: "text",
-            text:
-              "Image " + file.name +
-              " has an unsupported image format."
+            text: "Image " + file.name + " has an unsupported image format."
           });
           continue;
         }
@@ -1051,13 +1029,40 @@ async function sendMessage() {
             "\nCONTENTS:\n" + contents
         });
 
+      } else if (
+        ["pdf", "docx", "xlsx", "xls", "pptx"].includes(extension)
+      ) {
+        $("sendButton").textContent = "Reading files...";
+
+        try {
+          const contents = await extractDocument(file);
+
+          if (!contents.trim()) {
+            throw new Error("No readable text was found in this file.");
+          }
+
+          parts.push({
+            type: "text",
+            text:
+              "\n\nATTACHED FILE: " + file.name +
+              "\nEXTRACTED CONTENTS:\n" + contents
+          });
+        } catch (error) {
+          parts.push({
+            type: "text",
+            text:
+              "\n\nCould not read attached file " + file.name +
+              ". Reason: " + error.message
+          });
+        }
+
       } else {
         parts.push({
           type: "text",
           text:
             "\n\nThe user attached " + file.name +
             " (" + type +
-            "). This file format is not yet supported for content extraction."
+            "). This format is not supported for text extraction yet."
         });
       }
     }
