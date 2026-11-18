@@ -1,243 +1,167 @@
 
-export default async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store");
+const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
+const GEMINI_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+const GROQ_MODELS_URL = "https://api.groq.com/openai/v1/models";
 
-  if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
-    return res.status(405).json({ error: "Method not allowed." });
-  }
+function getFamily(id = "") {
+  const author = id.split("/")[0].toLowerCase();
 
-  const providerInput = String(req.query.provider || "")
-    .trim()
-    .toLowerCase();
-
-  const providerAliases = {
-    gemini: "gemini",
-    "google gemini": "gemini",
-    groq: "groq",
-    chatgpt: "groq",
-    openrouter: "openrouter"
-  };
-
-  const provider = providerAliases[providerInput];
-
-  if (!provider) {
-    return res.status(400).json({
-      error: "Unknown provider. Choose Gemini, ChatGPT, or OpenRouter."
-    });
-  }
-
-  const keys = {
-    gemini: process.env.GEMINI_API_KEY,
-    groq: process.env.GROQ_API_KEY,
-    openrouter: process.env.OPENROUTER_API_KEY
-  };
-
-  const apiKey = keys[provider];
-
-  if (!apiKey) {
-    return res.status(500).json({
-      error: `The ${provider} API key is missing. Add the correct environment variable in Vercel.`
-    });
-  }
-
-  try {
-    let models = [];
-
-    if (provider === "gemini") {
-      models = await getGeminiModels(apiKey);
-    }
-
-    if (provider === "groq") {
-      models = await getGroqModels(apiKey);
-    }
-
-    if (provider === "openrouter") {
-      models = await getOpenRouterModels(apiKey);
-    }
-
-    return res.status(200).json({
-      provider,
-      models
-    });
-
-  } catch (error) {
-    console.error("Model list error:", error.message);
-
-    return res.status(error.status || 502).json({
-      error: error.message || "Unable to retrieve models."
-    });
-  }
+  if (author.includes("openai")) return "OpenAI";
+  if (author.includes("google")) return "Gemini";
+  if (author.includes("deepseek")) return "DeepSeek";
+  if (author.includes("anthropic")) return "Claude";
+  if (author.includes("qwen")) return "Qwen";
+  if (author.includes("meta-llama") || author.includes("llama")) return "Llama";
+  return "Other";
 }
 
+async function getOpenRouterModels() {
+  const key = process.env.OPENROUTER_API_KEY;
+  if (!key) return [];
 
-async function readApiResponse(response) {
-  const text = await response.text();
-
-  let data;
-
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new Error(
-      `The provider returned an invalid response (HTTP ${response.status}).`
-    );
-  }
-
-  if (!response.ok) {
-    const message =
-      data?.error?.message ||
-      data?.message ||
-      `Provider request failed with HTTP ${response.status}.`;
-
-    const error = new Error(message);
-    error.status = response.status;
-    throw error;
-  }
-
-  return data;
-}
-
-
-async function getGeminiModels(apiKey) {
-  const allModels = [];
-  let pageToken = "";
-
-  // Read multiple pages so the list is not limited to the first page.
-  for (let page = 0; page < 5; page++) {
-    const url = new URL(
-      "https://generativelanguage.googleapis.com/v1beta/models"
-    );
-
-    url.searchParams.set("key", apiKey);
-    url.searchParams.set("pageSize", "100");
-
-    if (pageToken) {
-      url.searchParams.set("pageToken", pageToken);
-    }
-
-    const response = await fetch(url, {
-      method: "GET",
-      signal: AbortSignal.timeout(20000)
-    });
-
-    const data = await readApiResponse(response);
-
-    const pageModels = Array.isArray(data.models)
-      ? data.models
-      : [];
-
-    allModels.push(...pageModels);
-
-    pageToken = data.nextPageToken || "";
-
-    if (!pageToken) break;
-  }
-
-  const compatible = allModels
-    .filter(model => {
-      const name = String(model.name || "")
-        .replace(/^models\//, "");
-
-      const supportsTextGeneration =
-        Array.isArray(model.supportedGenerationMethods) &&
-        model.supportedGenerationMethods.includes("generateContent");
-
-      const requestedFamily =
-        /^(gemini-(3|4)(-|$)|nano-banana)/i.test(name);
-
-      return supportsTextGeneration && requestedFamily;
-    })
-    .map(model => String(model.name).replace(/^models\//, ""));
-
-  // Prefer the requested default if Google actually returns it.
-  compatible.sort((a, b) => {
-    const aDefault = a === "gemini-3.5-flash-lite" ? 0 : 1;
-    const bDefault = b === "gemini-3.5-flash-lite" ? 0 : 1;
-
-    return aDefault - bDefault || a.localeCompare(b);
+  const response = await fetch(OPENROUTER_MODELS_URL, {
+    headers: { Authorization: `Bearer ${key}` }
   });
 
-  return [...new Set(compatible)];
-}
-
-
-async function getGroqModels(apiKey) {
-  const response = await fetch(
-    "https://api.groq.com/openai/v1/models",
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        Accept: "application/json"
-      },
-      signal: AbortSignal.timeout(20000)
-    }
-  );
-
-  const data = await readApiResponse(response);
-
-  if (!Array.isArray(data.data)) {
-    throw new Error("Groq returned an unexpected model list.");
+  if (!response.ok) {
+    throw new Error("OpenRouter model request failed");
   }
 
-  return data.data
+  const result = await response.json();
+
+  return (result.data || [])
     .filter(model => {
-      if (!model || typeof model.id !== "string") return false;
-      if (model.active === false) return false;
-
-      return true;
-    })
-    .map(model => model.id)
-    .sort((a, b) => a.localeCompare(b));
-}
-
-
-async function getOpenRouterModels(apiKey) {
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/models",
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        Accept: "application/json"
-      },
-      signal: AbortSignal.timeout(20000)
-    }
-  );
-
-  const data = await readApiResponse(response);
-
-  if (!Array.isArray(data.data)) {
-    throw new Error("OpenRouter returned an unexpected model list.");
-  }
-
-  return data.data
-    .filter(model => {
-      if (!model || typeof model.id !== "string") return false;
-
+      const id = model.id || "";
       const architecture = model.architecture || {};
+      const pricing = model.pricing || {};
+      const endpoints = model.endpoints || [];
 
-      const inputModalities = architecture.input_modalities;
-      const outputModalities = architecture.output_modalities;
+      const supportsTextInput =
+        (architecture.input_modalities || []).includes("text");
 
-      // Keep models that can accept and produce text.
-      if (
-        Array.isArray(inputModalities) &&
-        !inputModalities.includes("text")
-      ) {
-        return false;
-      }
+      const supportsTextOutput =
+        (architecture.output_modalities || []).includes("text");
 
-      if (
-        Array.isArray(outputModalities) &&
-        !outputModalities.includes("text")
-      ) {
-        return false;
-      }
+      const supportsChat =
+        endpoints.length === 0 ||
+        endpoints.some(endpoint =>
+          String(endpoint.name || endpoint.endpoint_type || "")
+            .toLowerCase()
+            .includes("chat")
+        );
 
-      return true;
+      return (
+        id.endsWith(":free") &&
+        !id.startsWith("~") &&
+        supportsTextInput &&
+        supportsTextOutput &&
+        supportsChat &&
+        Number(pricing.prompt || 0) === 0 &&
+        Number(pricing.completion || 0) === 0
+      );
     })
-    .map(model => model.id)
-    .sort((a, b) => a.localeCompare(b));
+    .map(model => ({
+      id: model.id,
+      name: model.name || model.id,
+      family: getFamily(model.id),
+      provider: "OpenRouter"
+    }));
+}
+
+async function getGeminiModels() {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return [];
+
+  const response = await fetch(
+    `${GEMINI_MODELS_URL}?key=${encodeURIComponent(key)}`
+  );
+
+  if (!response.ok) {
+    throw new Error("Gemini model request failed");
+  }
+
+  const result = await response.json();
+
+  return (result.models || [])
+    .filter(model =>
+      model.name &&
+      !model.name.startsWith("~") &&
+      (model.supportedGenerationMethods || [])
+        .includes("generateContent")
+    )
+    .map(model => ({
+      id: model.name.replace(/^models\//, ""),
+      name: model.displayName || model.name,
+      family: "Gemini",
+      provider: "Gemini"
+    }));
+}
+
+async function getGroqModels() {
+  const key = process.env.GROQ_API_KEY;
+  if (!key) return [];
+
+  const response = await fetch(GROQ_MODELS_URL, {
+    headers: { Authorization: `Bearer ${key}` }
+  });
+
+  if (!response.ok) {
+    throw new Error("Groq model request failed");
+  }
+
+  const result = await response.json();
+
+  return (result.data || [])
+    .filter(model =>
+      model.id &&
+      !model.id.startsWith("~") &&
+      model.active !== false
+    )
+    .map(model => ({
+      id: model.id,
+      name: model.id,
+      family: "ChatGPT",
+      provider: "Groq"
+    }));
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const [gemini, groq, openrouter] = await Promise.all([
+      getGeminiModels(),
+      getGroqModels(),
+      getOpenRouterModels()
+    ]);
+
+    const groups = {
+      Gemini: gemini,
+      ChatGPT: groq,
+      "OpenAI (OpenRouter)": openrouter.filter(m => m.family === "OpenAI"),
+      "Gemini (OpenRouter)": openrouter.filter(m => m.family === "Gemini"),
+      DeepSeek: openrouter.filter(m => m.family === "DeepSeek"),
+      Claude: openrouter.filter(m => m.family === "Claude"),
+      Qwen: openrouter.filter(m => m.family === "Qwen"),
+      Llama: openrouter.filter(m => m.family === "Llama"),
+      Other: openrouter.filter(m => m.family === "Other")
+    };
+
+    const models = Object.values(groups).flat();
+
+    return res.status(200).json({
+      success: true,
+      groups,
+      models
+    });
+  } catch (error) {
+    console.error("Model loading error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "Could not load models. Check your API keys and try again."
+    });
+  }
 }
