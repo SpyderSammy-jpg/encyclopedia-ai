@@ -1,0 +1,1649 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7th Grade Encyclopedia AI</title>
+
+  <style>
+    :root {
+      --background: #090909;
+      --sidebar: #111111;
+      --panel: #171717;
+      --panel-hover: #222222;
+      --border: #292929;
+      --text: #f5f5f5;
+      --muted: #929292;
+      --red: #e53939;
+      --red-hover: #ff4949;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      height: 100vh;
+      overflow: hidden;
+      background: var(--background);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+
+    .sidebar {
+      width: 270px;
+      min-width: 270px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 19px 14px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 8px 23px;
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    .brand-icon {
+      width: 31px;
+      height: 31px;
+      display: grid;
+      place-items: center;
+      background: var(--red);
+      border-radius: 9px;
+      color: white;
+      font-size: 18px;
+    }
+
+    .new-chat {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #3b3b3b;
+      border-radius: 9px;
+      background: #202020;
+      color: white;
+      text-align: left;
+      transition: 0.2s;
+    }
+
+    .new-chat:hover {
+      background: #303030;
+      border-color: var(--red);
+    }
+
+    .new-chat span {
+      margin-right: 8px;
+      color: var(--red);
+      font-size: 18px;
+    }
+
+    .section-label {
+      margin: 27px 5px 10px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+    }
+
+    .provider-label,
+    .model-label {
+      display: block;
+      margin: 15px 3px 8px;
+      color: #d5d5d5;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .sidebar select {
+      width: 100%;
+      padding: 11px 10px;
+      border: 1px solid #383838;
+      border-radius: 8px;
+      outline: none;
+      background: #1c1c1c;
+      color: white;
+      cursor: pointer;
+    }
+
+    .sidebar select:focus {
+      border-color: var(--red);
+    }
+
+    .model-area.hidden {
+      display: none;
+    }
+
+    .model-note {
+      margin: 7px 3px 0;
+      color: #777;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .history-heading {
+      margin-top: 30px;
+    }
+
+    .history {
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 5px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin: 3px 0;
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .history-item.active,
+    .history-item:hover {
+      background: #252525;
+    }
+
+    .history-open {
+      flex: 1;
+      min-width: 0;
+      padding: 8px 5px;
+      overflow: hidden;
+      border: none;
+      background: transparent;
+      color: #d7d7d7;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .history-menu {
+      position: relative;
+    }
+
+    .history-menu > button {
+      padding: 5px 7px;
+      border: none;
+      border-radius: 5px;
+      background: transparent;
+      color: #aaa;
+    }
+
+    .history-menu > button:hover {
+      background: #383838;
+      color: white;
+    }
+
+    .history-popup {
+      position: absolute;
+      z-index: 20;
+      right: 0;
+      top: 30px;
+      width: 125px;
+      padding: 5px;
+      border: 1px solid #383838;
+      border-radius: 8px;
+      background: #242424;
+      box-shadow: 0 8px 25px #0009;
+    }
+
+    .history-popup button {
+      width: 100%;
+      padding: 9px;
+      border: none;
+      border-radius: 5px;
+      background: transparent;
+      color: white;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    .history-popup button:hover {
+      background: #393939;
+    }
+
+    .history-popup .delete-option {
+      color: #ff7777;
+    }
+
+    .sidebar-footer {
+      padding: 14px 5px 3px;
+      border-top: 1px solid var(--border);
+      color: #777;
+      font-size: 10px;
+    }
+
+    /* MAIN AREA */
+
+    .main {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .topbar {
+      position: relative;
+      display: flex;
+      height: 65px;
+      min-height: 65px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 25px;
+      border-bottom: 1px solid var(--border);
+      background: #101010;
+    }
+
+    .topbar-title {
+      font-size: 16px;
+      font-weight: bold;
+      letter-spacing: 0.2px;
+      text-align: center;
+    }
+
+    .topbar-author {
+      position: absolute;
+      right: 25px;
+      color: #aaa;
+      font-size: 11px;
+    }
+
+    .topbar-author strong {
+      color: white;
+      font-weight: 600;
+    }
+
+    /* CHAT */
+
+    .chat-screen {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+    }
+
+    .messages {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 25px;
+      overflow-y: auto;
+      padding: 30px max(25px, calc((100% - 800px) / 2));
+    }
+
+    .welcome {
+      width: 100%;
+      max-width: 650px;
+      margin: auto;
+      padding: 25px;
+      text-align: center;
+    }
+
+    .welcome-logo {
+      display: grid;
+      width: 55px;
+      height: 55px;
+      margin: 0 auto 20px;
+      place-items: center;
+      border-radius: 17px;
+      background: var(--red);
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .welcome h1 {
+      margin-bottom: 10px;
+      font-size: 27px;
+    }
+
+    .welcome p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .welcome-accent {
+      color: var(--red);
+    }
+
+    .message {
+      display: flex;
+      max-width: 85%;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+    }
+
+    .avatar {
+      display: grid;
+      width: 31px;
+      height: 31px;
+      flex-shrink: 0;
+      place-items: center;
+      border-radius: 9px;
+      background: #292929;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .assistant .avatar {
+      background: var(--red);
+    }
+
+    .message-content {
+      min-width: 0;
+    }
+
+    .message-name {
+      margin-bottom: 7px;
+      color: #999;
+      font-size: 11px;
+    }
+
+    .user .message-name {
+      text-align: right;
+    }
+
+    .message-text {
+      overflow-wrap: anywhere;
+      color: #ededed;
+      font-size: 14px;
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .user .message-text {
+      padding: 11px 15px;
+      border: 1px solid #383838;
+      border-radius: 15px 4px 15px 15px;
+      background: #252525;
+    }
+
+    .typing {
+      color: #aaa;
+      font-size: 12px;
+    }
+
+    /* INPUT */
+
+    .composer-area {
+      width: min(850px, calc(100% - 45px));
+      margin: 0 auto 15px;
+    }
+
+    .composer {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 12px 13px 12px 17px;
+      border: 1px solid #3b3b3b;
+      border-radius: 15px;
+      background: #1b1b1b;
+    }
+
+    .composer:focus-within {
+      border-color: var(--red);
+    }
+
+    .composer textarea {
+      flex: 1;
+      min-height: 27px;
+      max-height: 150px;
+      resize: none;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: white;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .composer textarea::placeholder {
+      color: #777;
+    }
+
+    .send-button {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      place-items: center;
+      border: none;
+      border-radius: 10px;
+      background: var(--red);
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .send-button:hover {
+      background: var(--red-hover);
+    }
+
+    .send-button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .disclaimer {
+      margin-top: 9px;
+      color: #666;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .error {
+      margin-bottom: 8px;
+      color: #ff7777;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    /* ENCYCLOPEDIA AI */
+
+    .encyclopedia-screen {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .encyclopedia-screen.hidden {
+      display: none;
+    }
+
+    .encyclopedia-heading {
+      margin: 5px 0 17px;
+      text-align: center;
+    }
+
+    .encyclopedia-heading h2 {
+      margin-bottom: 7px;
+      font-size: 20px;
+    }
+
+    .encyclopedia-heading p {
+      color: #999;
+      font-size: 12px;
+    }
+
+    .elfsight-app-7568ba73-5055-478b-b276-749a252f0d1e {
+      min-height: 450px;
+    }
+
+    /* DIALOGS */
+
+    .modal-backdrop {
+      position: fixed;
+      z-index: 100;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: #000b;
+    }
+
+    .modal {
+      width: min(380px, 100%);
+      padding: 24px;
+      border: 1px solid #393939;
+      border-radius: 15px;
+      background: #1b1b1b;
+      box-shadow: 0 20px 60px #000a;
+    }
+
+    .modal h2 {
+      margin-bottom: 9px;
+      font-size: 19px;
+    }
+
+    .modal p {
+      margin-bottom: 17px;
+      color: #999;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .modal input {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      outline: none;
+      background: #101010;
+      color: white;
+    }
+
+    .modal input:focus {
+      border-color: var(--red);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 19px;
+    }
+
+    .modal-actions button {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .cancel-button {
+      background: #333;
+      color: white;
+    }
+
+    .confirm-button {
+      background: var(--red);
+      color: white;
+    }
+
+    .confirm-button:disabled {
+      opacity: 0.4;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 650px) {
+      .sidebar {
+        width: 215px;
+        min-width: 215px;
+        padding: 13px 10px;
+      }
+
+      .topbar {
+        padding: 0 10px;
+      }
+
+      .topbar-title {
+        font-size: 13px;
+      }
+
+      .topbar-author {
+        right: 10px;
+        font-size: 9px;
+      }
+
+      .messages {
+        padding: 20px 13px;
+      }
+
+      .welcome h1 {
+        font-size: 22px;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .sidebar {
+        width: 175px;
+        min-width: 175px;
+      }
+
+      .brand {
+        font-size: 14px;
+      }
+
+      .topbar-author {
+        display: none;
+      }
+
+      .message {
+        max-width: 96%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- LEFT SIDEBAR -->
+
+  <aside class="sidebar">
+
+    <div class="brand">
+      <div class="brand-icon">7</div>
+      <span>Encyclopedia AI</span>
+    </div>
+
+    <button class="new-chat" id="newChatButton">
+      <span>＋</span> New chat
+    </button>
+
+    <div class="section-label">AI PROVIDERS</div>
+
+    <label class="provider-label" for="providerSelect">
+      Provider:
+    </label>
+
+    <select id="providerSelect">
+      <option value="Gemini">Google Gemini</option>
+      <option value="Encyclopedia">Encyclopedia AI</option>
+      <option value="Groq">Groq</option>
+      <option value="OpenRouter">OpenRouter</option>
+    </select>
+
+    <div class="model-area" id="modelArea">
+
+      <label class="model-label" for="modelSelect">
+        Model:
+      </label>
+
+      <select id="modelSelect">
+        <option value="gemini-2.5-flash-lite">
+          Gemini 2.5 Flash-Lite
+        </option>
+      </select>
+
+      <p class="model-note" id="modelNote">
+        Loading available models...
+      </p>
+
+    </div>
+
+    <div class="section-label history-heading">
+      CHAT HISTORY
+    </div>
+
+    <div class="history" id="history"></div>
+
+    <div class="sidebar-footer">
+      7th Grade Encyclopedia AI<br>
+      Multiple AI providers · One place
+    </div>
+
+  </aside>
+
+  <!-- MAIN AREA -->
+
+  <main class="main">
+
+    <header class="topbar">
+
+      <div class="topbar-title">
+        7th Grade Encyclopedia AI
+      </div>
+
+      <div class="topbar-author">
+        By: <strong>Sharvesh</strong>
+      </div>
+
+    </header>
+
+    <!-- NORMAL CHAT SCREEN -->
+
+    <section class="chat-screen" id="chatScreen">
+
+      <div class="messages" id="messages">
+
+        <div class="welcome" id="welcome">
+
+          <div class="welcome-logo">7</div>
+
+          <h1>
+            Welcome to
+            <span class="welcome-accent">
+              Encyclopedia AI
+            </span>
+          </h1>
+
+          <p>
+            Your personal AI assistant for learning,
+            exploring ideas, answering questions,
+            and discovering something new.
+          </p>
+
+        </div>
+
+      </div>
+
+      <div class="composer-area">
+
+        <div class="error hidden" id="errorMessage"></div>
+
+        <form class="composer" id="chatForm">
+
+          <textarea
+            id="messageInput"
+            rows="1"
+            placeholder="Message Encyclopedia AI..."
+          ></textarea>
+
+          <button
+            class="send-button"
+            id="sendButton"
+            type="submit"
+          >
+            ↑
+          </button>
+
+        </form>
+
+        <div class="disclaimer">
+          AI can make mistakes. Check important information.
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ENCYCLOPEDIA PROVIDER SCREEN -->
+
+    <section
+      class="encyclopedia-screen hidden"
+      id="encyclopediaScreen"
+    >
+
+      <div class="encyclopedia-heading">
+        <h2>Encyclopedia AI</h2>
+        <p>
+          Your dedicated Encyclopedia AI chatbot.
+        </p>
+      </div>
+
+      <div
+        class="elfsight-app-7568ba73-5055-478b-b276-749a252f0d1e"
+        data-elfsight-app-lazy
+      ></div>
+
+    </section>
+
+  </main>
+
+</div>
+
+<!-- RENAME / DELETE DIALOG -->
+
+<div class="modal-backdrop hidden" id="modalBackdrop">
+
+  <div class="modal">
+
+    <h2 id="modalTitle">Rename chat</h2>
+
+    <p id="modalDescription">
+      Choose a new name for this conversation.
+    </p>
+
+    <input
+      id="modalInput"
+      type="text"
+      maxlength="70"
+      placeholder="Chat name"
+    >
+
+    <div class="modal-actions">
+
+      <button class="cancel-button" id="cancelModal">
+        Cancel
+      </button>
+
+      <button class="confirm-button" id="confirmModal">
+        Save
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ELFSIGHT CHATBOT SCRIPT -->
+
+<script
+  src="https://elfsightcdn.com/platform.js"
+  async
+></script>
+
+<script>
+/*
+==========================================================
+                  API CONFIGURATION
+==========================================================
+
+IMPORTANT:
+
+Do NOT paste real API keys into this HTML file.
+
+The browser makes requests to:
+  /api/models?provider=Gemini
+  /api/models?provider=Groq
+  /api/models?provider=OpenRouter
+  /api/chat
+
+Create these backend endpoints on Vercel and store your
+keys in Vercel Environment Variables:
+
+  GEMINI_API_KEY
+  GROQ_API_KEY
+  OPENROUTER_API_KEY
+
+Never publish your real keys in GitHub.
+==========================================================
+*/
+
+
+/* ELEMENTS */
+
+const providerSelect =
+  document.getElementById("providerSelect");
+
+const modelSelect =
+  document.getElementById("modelSelect");
+
+const modelArea =
+  document.getElementById("modelArea");
+
+const modelNote =
+  document.getElementById("modelNote");
+
+const chatScreen =
+  document.getElementById("chatScreen");
+
+const encyclopediaScreen =
+  document.getElementById("encyclopediaScreen");
+
+const messages =
+  document.getElementById("messages");
+
+const welcome =
+  document.getElementById("welcome");
+
+const chatForm =
+  document.getElementById("chatForm");
+
+const messageInput =
+  document.getElementById("messageInput");
+
+const sendButton =
+  document.getElementById("sendButton");
+
+const errorMessage =
+  document.getElementById("errorMessage");
+
+const historyElement =
+  document.getElementById("history");
+
+
+/* STATE */
+
+let chats = [];
+let activeChatId = null;
+let currentModels = [];
+let isSending = false;
+let modalAction = null;
+
+
+/* FALLBACK MODELS
+
+These are backup choices only.
+The live model endpoint should provide the current
+available models for each provider.
+*/
+
+const fallbackModels = {
+  Gemini: [
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.5-pro"
+  ],
+
+  Groq: [
+    "openai/gpt-oss-20b",
+    "openai/gpt-oss-120b",
+    "llama-3.3-70b-versatile",
+    "qwen/qwen3-32b",
+    "meta-llama/llama-4-scout-17b-16e-instruct"
+  ],
+
+  OpenRouter: []
+};
+
+
+/* FRIENDLY MODEL NAMES */
+
+function prettyModelName(id) {
+
+  const names = {
+    "gemini-2.5-flash-lite":
+      "Gemini 2.5 Flash-Lite",
+
+    "gemini-2.5-flash":
+      "Gemini 2.5 Flash",
+
+    "gemini-2.5-pro":
+      "Gemini 2.5 Pro"
+  };
+
+  if (names[id]) return names[id];
+
+  return id
+    .split("/")
+    .pop()
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, letter => letter.toUpperCase());
+}
+
+
+/* MODEL LOADING */
+
+async function loadModels(provider) {
+
+  modelSelect.innerHTML =
+    '<option value="">Loading models...</option>';
+
+  modelNote.textContent =
+    "Checking available models...";
+
+  try {
+
+    const response = await fetch(
+      "/api/models?provider=" +
+      encodeURIComponent(provider),
+      { cache: "no-store" }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Could not load models.");
+    }
+
+    let models = Array.isArray(data.models)
+      ? data.models
+      : [];
+
+    if (models.length === 0) {
+      models = fallbackModels[provider] || [];
+    }
+
+    currentModels = models;
+
+    modelSelect.innerHTML = "";
+
+    if (!models.length) {
+
+      modelSelect.innerHTML =
+        '<option value="">No models available</option>';
+
+      modelNote.textContent =
+        data.error || "No models were returned by this provider.";
+
+      return;
+    }
+
+    models.forEach(id => {
+
+      const option = document.createElement("option");
+
+      option.value = id;
+      option.textContent = prettyModelName(id);
+
+      modelSelect.appendChild(option);
+
+    });
+
+    // Gemini default model
+    if (
+      provider === "Gemini" &&
+      models.includes("gemini-2.5-flash-lite")
+    ) {
+      modelSelect.value = "gemini-2.5-flash-lite";
+    }
+
+    modelNote.textContent =
+      models.length + " available model(s)";
+
+  } catch (error) {
+
+    const models = fallbackModels[provider] || [];
+
+    currentModels = models;
+    modelSelect.innerHTML = "";
+
+    models.forEach(id => {
+
+      const option = document.createElement("option");
+
+      option.value = id;
+      option.textContent = prettyModelName(id);
+
+      modelSelect.appendChild(option);
+
+    });
+
+    if (provider === "Gemini") {
+      modelSelect.value = "gemini-2.5-flash-lite";
+    }
+
+    modelNote.textContent =
+      "Live model list unavailable. Check your backend.";
+  }
+}
+
+
+/* PROVIDER SWITCHING */
+
+providerSelect.addEventListener("change", async () => {
+
+  const provider = providerSelect.value;
+
+  errorMessage.classList.add("hidden");
+
+  if (provider === "Encyclopedia") {
+
+    modelArea.classList.add("hidden");
+    chatScreen.classList.add("hidden");
+    encyclopediaScreen.classList.remove("hidden");
+
+    return;
+  }
+
+  encyclopediaScreen.classList.add("hidden");
+  chatScreen.classList.remove("hidden");
+  modelArea.classList.remove("hidden");
+
+  await loadModels(provider);
+
+});
+
+
+/* CHAT HISTORY */
+
+function saveChats() {
+
+  localStorage.setItem(
+    "encyclopedia-ai-chats",
+    JSON.stringify(chats)
+  );
+
+}
+
+
+function getActiveChat() {
+
+  return chats.find(chat => chat.id === activeChatId);
+}
+
+
+function createNewChat() {
+
+  const chat = {
+    id: Date.now().toString(),
+    title: "New chat",
+    messages: []
+  };
+
+  chats.unshift(chat);
+
+  activeChatId = chat.id;
+
+  saveChats();
+  renderHistory();
+  renderMessages();
+
+}
+
+
+document
+  .getElementById("newChatButton")
+  .addEventListener("click", createNewChat);
+
+
+function renderHistory() {
+
+  historyElement.innerHTML = "";
+
+  chats.forEach(chat => {
+
+    const item = document.createElement("div");
+
+    item.className =
+      "history-item" +
+      (chat.id === activeChatId ? " active" : "");
+
+    const openButton = document.createElement("button");
+
+    openButton.className = "history-open";
+    openButton.textContent = chat.title;
+
+    openButton.addEventListener("click", () => {
+
+      activeChatId = chat.id;
+
+      renderHistory();
+      renderMessages();
+
+    });
+
+    const menu = document.createElement("div");
+
+    menu.className = "history-menu";
+
+    const menuButton = document.createElement("button");
+
+    menuButton.textContent = "···";
+    menuButton.setAttribute("aria-label", "Chat options");
+
+    const popup = document.createElement("div");
+
+    popup.className = "history-popup hidden";
+
+    const renameButton = document.createElement("button");
+
+    renameButton.textContent = "✎  Rename";
+
+    renameButton.addEventListener("click", () => {
+
+      popup.classList.add("hidden");
+
+      openRenameDialog(chat.id);
+
+    });
+
+    const deleteButton = document.createElement("button");
+
+    deleteButton.textContent = "⌫  Delete";
+    deleteButton.className = "delete-option";
+
+    deleteButton.addEventListener("click", () => {
+
+      popup.classList.add("hidden");
+
+      openDeleteDialog(chat.id);
+
+    });
+
+    popup.append(renameButton, deleteButton);
+
+    menuButton.addEventListener("click", event => {
+
+      event.stopPropagation();
+
+      document
+        .querySelectorAll(".history-popup")
+        .forEach(p => p.classList.add("hidden"));
+
+      popup.classList.toggle("hidden");
+
+    });
+
+    menu.append(menuButton, popup);
+
+    item.append(openButton, menu);
+
+    historyElement.appendChild(item);
+
+  });
+
+}
+
+
+document.addEventListener("click", () => {
+
+  document
+    .querySelectorAll(".history-popup")
+    .forEach(p => p.classList.add("hidden"));
+
+});
+
+
+/* RENDER MESSAGES */
+
+function renderMessages() {
+
+  messages.innerHTML = "";
+
+  const chat = getActiveChat();
+
+  if (!chat || chat.messages.length === 0) {
+
+    messages.appendChild(welcome);
+
+    welcome.classList.remove("hidden");
+
+    return;
+  }
+
+  welcome.classList.add("hidden");
+
+  chat.messages.forEach(message => {
+
+    const row = document.createElement("div");
+
+    row.className =
+      "message " +
+      (message.role === "user" ? "user" : "assistant");
+
+    const avatar = document.createElement("div");
+
+    avatar.className = "avatar";
+
+    avatar.textContent =
+      message.role === "user" ? "You" : "7";
+
+    const content = document.createElement("div");
+
+    content.className = "message-content";
+
+    const name = document.createElement("div");
+
+    name.className = "message-name";
+
+    name.textContent =
+      message.role === "user"
+        ? "You"
+        : "7th Grade Encyclopedia AI";
+
+    const text = document.createElement("div");
+
+    text.className = "message-text";
+
+    text.textContent = message.content;
+
+    content.append(name, text);
+
+    row.append(avatar, content);
+
+    messages.appendChild(row);
+
+  });
+
+  messages.scrollTop = messages.scrollHeight;
+
+}
+
+
+/* ADD MESSAGE */
+
+function addMessage(role, content) {
+
+  const chat = getActiveChat();
+
+  if (!chat) return;
+
+  chat.messages.push({
+    role,
+    content
+  });
+
+  if (
+    role === "user" &&
+    chat.title === "New chat"
+  ) {
+
+    chat.title =
+      content.length > 35
+        ? content.slice(0, 35) + "..."
+        : content;
+
+  }
+
+  saveChats();
+  renderHistory();
+  renderMessages();
+
+}
+
+
+/* SEND MESSAGE */
+
+async function sendMessage(event) {
+
+  event.preventDefault();
+
+  const text = messageInput.value.trim();
+
+  if (!text || isSending) return;
+
+  if (!getActiveChat()) {
+    createNewChat();
+  }
+
+  const provider = providerSelect.value;
+  const model = modelSelect.value;
+
+  if (!model) {
+
+    showError("Please select an available model.");
+
+    return;
+  }
+
+  const chat = getActiveChat();
+
+  addMessage("user", text);
+
+  messageInput.value = "";
+
+  isSending = true;
+
+  sendButton.disabled = true;
+
+  errorMessage.classList.add("hidden");
+
+  const typing = document.createElement("div");
+
+  typing.className = "typing";
+  typing.textContent = "Thinking...";
+
+  messages.appendChild(typing);
+
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+
+    const response = await fetch("/api/chat", {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+
+        provider,
+        model,
+
+        messages: chat.messages.map(message => ({
+          role: message.role,
+          content: message.content
+        }))
+
+      })
+
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+
+      throw new Error(
+        data.error || "The AI request failed."
+      );
+
+    }
+
+    typing.remove();
+
+    addMessage(
+      "assistant",
+      String(data.reply || "").trim()
+    );
+
+  } catch (error) {
+
+    typing.remove();
+
+    showError(error.message || "Something went wrong.");
+
+  } finally {
+
+    isSending = false;
+
+    sendButton.disabled = false;
+
+    messageInput.focus();
+
+  }
+
+}
+
+
+chatForm.addEventListener("submit", sendMessage);
+
+
+messageInput.addEventListener("keydown", event => {
+
+  if (
+    event.key === "Enter" &&
+    !event.shiftKey
+  ) {
+
+    event.preventDefault();
+
+    chatForm.requestSubmit();
+
+  }
+
+});
+
+
+function showError(message) {
+
+  errorMessage.textContent = message;
+
+  errorMessage.classList.remove("hidden");
+
+}
+
+
+/* RENAME / DELETE DIALOGS */
+
+const modalBackdrop =
+  document.getElementById("modalBackdrop");
+
+const modalTitle =
+  document.getElementById("modalTitle");
+
+const modalDescription =
+  document.getElementById("modalDescription");
+
+const modalInput =
+  document.getElementById("modalInput");
+
+const confirmModal =
+  document.getElementById("confirmModal");
+
+
+function openRenameDialog(id) {
+
+  const chat = chats.find(c => c.id === id);
+
+  if (!chat) return;
+
+  modalAction = {
+    type: "rename",
+    id
+  };
+
+  modalTitle.textContent = "Rename chat";
+
+  modalDescription.textContent =
+    "Choose a new name for this conversation.";
+
+  modalInput.value = chat.title;
+
+  modalInput.classList.remove("hidden");
+
+  confirmModal.textContent = "Save";
+
+  modalBackdrop.classList.remove("hidden");
+
+  setTimeout(() => modalInput.focus(), 50);
+
+}
+
+
+function openDeleteDialog(id) {
+
+  modalAction = {
+    type: "delete",
+    id
+  };
+
+  modalTitle.textContent = "Delete this chat?";
+
+  modalDescription.textContent =
+    "This conversation will be removed from your chat history on this device.";
+
+  modalInput.classList.add("hidden");
+
+  confirmModal.textContent = "Delete";
+
+  modalBackdrop.classList.remove("hidden");
+
+}
+
+
+function closeModal() {
+
+  modalBackdrop.classList.add("hidden");
+
+  modalAction = null;
+
+}
+
+
+document
+  .getElementById("cancelModal")
+  .addEventListener("click", closeModal);
+
+
+confirmModal.addEventListener("click", () => {
+
+  if (!modalAction) return;
+
+  const { type, id } = modalAction;
+
+  if (type === "rename") {
+
+    const newName = modalInput.value.trim();
+
+    if (!newName) return;
+
+    chats = chats.map(chat => {
+
+      if (chat.id === id) {
+        return {
+          ...chat,
+          title: newName
+        };
+      }
+
+      return chat;
+
+    });
+
+  }
+
+  if (type === "delete") {
+
+    chats = chats.filter(chat => chat.id !== id);
+
+    if (activeChatId === id) {
+
+      activeChatId = chats[0]?.id || null;
+
+    }
+
+  }
+
+  saveChats();
+
+  renderHistory();
+
+  renderMessages();
+
+  closeModal();
+
+});
+
+
+modalInput.addEventListener("keydown", event => {
+
+  if (event.key === "Enter") {
+    confirmModal.click();
+  }
+
+});
+
+
+modalBackdrop.addEventListener("click", event => {
+
+  if (event.target === modalBackdrop) {
+    closeModal();
+  }
+
+});
+
+
+/* LOAD SAVED CHATS */
+
+function loadSavedChats() {
+
+  try {
+
+    chats = JSON.parse(
+      localStorage.getItem("encyclopedia-ai-chats") || "[]"
+    );
+
+  } catch {
+
+    chats = [];
+
+  }
+
+  activeChatId = chats[0]?.id || null;
+
+  renderHistory();
+
+  renderMessages();
+
+}
+
+
+/* START */
+
+loadSavedChats();
+
+loadModels("Gemini");
+
+</script>
+
+</body>
+</html>
