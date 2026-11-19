@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Service</title>
 
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)'], ['$', '$']],
+    displayMath: [['\\[', '\\]'], ['$$', '$$']],
+    processEscapes: true
+  },
+  options: {
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  },
+  startup: {
+    typeset: false
+  }
+};
+</script>
+
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 <script src="https://elfsightcdn.com/platform.js" async></script>
@@ -195,6 +213,55 @@ select:focus, input:focus, textarea:focus {
 
 .content p:first-child { margin-top: 0; }
 
+.content p:last-child { margin-bottom: 0; }
+
+.content h1,
+.content h2,
+.content h3 {
+  line-height: 1.3;
+  margin-top: 22px;
+}
+
+.content ul,
+.content ol {
+  padding-left: 25px;
+}
+
+.content li {
+  margin: 5px 0;
+}
+
+.content blockquote {
+  border-left: 3px solid var(--red);
+  padding-left: 14px;
+  margin-left: 0;
+  color: #ccc;
+}
+
+.content hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 18px 0;
+}
+
+.content .math-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 10px 0;
+  margin: 12px 0;
+  text-align: center;
+}
+
+.content mjx-container {
+  max-width: 100%;
+}
+
+.content mjx-container[display="true"] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 5px 0;
+}
+
 .code-block {
   margin: 16px 0;
   border: 1px solid #383838;
@@ -280,6 +347,10 @@ select:focus, input:focus, textarea:focus {
 .content th {
   border: 1px solid var(--border);
   padding: 8px;
+}
+
+.content th {
+  background: #242424;
 }
 
 .preview-overlay {
@@ -437,15 +508,13 @@ select:focus, input:focus, textarea:focus {
 
 .encyclopedia-widget > div { min-height: 65vh; }
 
-/* =========================================
-   GEMINI 4 NEON ANNOUNCEMENT POPUP
-========================================= */
+/* GEMINI 4 NEON POPUP */
 
-.announcement-overlay {
+.neon-overlay {
   position: fixed;
   inset: 0;
   z-index: 10000;
-  background: rgba(0, 0, 0, .82);
+  background: rgba(0,0,0,.82);
   backdrop-filter: blur(7px);
   display: none;
   align-items: center;
@@ -453,27 +522,26 @@ select:focus, input:focus, textarea:focus {
   padding: 20px;
 }
 
-.announcement-overlay.active {
+.neon-overlay.active {
   display: flex;
 }
 
-.announcement-box {
+.neon-popup {
   position: relative;
-  width: min(650px, 100%);
-  max-height: 90vh;
+  width: min(760px, 100%);
+  max-height: 92vh;
   overflow-y: auto;
-  background: #15151c;
-  border: 1px solid #343b60;
-  border-radius: 19px;
-  box-shadow: 0 0 45px rgba(55, 105, 255, .2);
-  padding: 25px;
-  animation: announcementAppear .3s ease-out;
+  background: #111522;
+  border: 1px solid #344b83;
+  border-radius: 18px;
+  box-shadow: 0 0 45px rgba(40,100,255,.22);
+  animation: neonAppear .3s ease-out;
 }
 
-@keyframes announcementAppear {
+@keyframes neonAppear {
   from {
     opacity: 0;
-    transform: translateY(15px) scale(.97);
+    transform: translateY(15px) scale(.98);
   }
   to {
     opacity: 1;
@@ -481,52 +549,54 @@ select:focus, input:focus, textarea:focus {
   }
 }
 
-.announcement-close {
+.neon-close {
   position: absolute;
   top: 12px;
-  right: 13px;
-  width: 35px;
-  height: 35px;
-  border: 0;
+  right: 12px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255,255,255,.2);
   border-radius: 50%;
-  background: #292c3a;
+  background: rgba(0,0,0,.65);
   color: white;
-  font-size: 23px;
-  display: grid;
-  place-items: center;
-  transition: background .2s;
+  font-size: 24px;
+  line-height: 1;
 }
 
-.announcement-close:hover {
-  background: #444b64;
+.neon-close:hover {
+  background: #e63946;
 }
 
-.announcement-title {
-  font-size: clamp(23px, 5vw, 32px);
-  margin: 5px 40px 20px 0;
-  letter-spacing: -.8px;
+.neon-heading {
+  text-align: center;
+  padding: 28px 50px 18px;
 }
 
-.announcement-title span {
-  background: linear-gradient(90deg, #ffffff, #63e5ff, #a58aff);
-  -webkit-background-clip: text;
+.neon-heading h2 {
+  margin: 0;
+  font-size: clamp(23px, 5vw, 34px);
+  background: linear-gradient(90deg, #fff, #43d9ff, #a68aff);
   background-clip: text;
+  -webkit-background-clip: text;
   color: transparent;
 }
 
-.announcement-image {
-  width: 100%;
+.neon-image {
   display: block;
+  width: calc(100% - 32px);
+  margin: 0 16px;
   border-radius: 12px;
-  margin-bottom: 18px;
-  border: 1px solid #303c65;
+  border: 1px solid #283e73;
 }
 
-.announcement-description {
-  color: #c4c8d7;
+.neon-description {
+  color: #d3d9eb;
   font-size: 15px;
   line-height: 1.7;
+  padding: 17px 25px 25px;
   margin: 0;
+  text-align: center;
 }
 
 @media(max-width:700px) {
@@ -540,60 +610,14 @@ select:focus, input:focus, textarea:focus {
   .brand { font-size: 16px; }
   .topbar { padding: 10px; }
   .preview-overlay { padding: 7px; }
-
-  .announcement-box {
-    padding: 19px;
-    border-radius: 15px;
-  }
-
-  .announcement-description {
-    font-size: 14px;
-  }
+  .neon-overlay { padding: 10px; }
+  .neon-heading { padding: 25px 40px 15px; }
+  .neon-description { padding: 15px; }
 }
 </style>
 </head>
 
 <body>
-
-<!-- GEMINI 4 NEON ANNOUNCEMENT -->
-<div
-  class="announcement-overlay"
-  id="announcementOverlay"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="announcementTitle"
->
-  <div class="announcement-box">
-
-    <button
-      class="announcement-close"
-      onclick="closeAnnouncement()"
-      aria-label="Close announcement"
-      title="Close"
-    >×</button>
-
-    <h2 class="announcement-title" id="announcementTitle">
-      Introducing <span>Gemini 4 Neon!</span>
-    </h2>
-
-    <img
-      class="announcement-image"
-      src="gemini4neon.png"
-      alt="Gemini 4 Neon announcement artwork"
-    >
-
-    <p class="announcement-description">
-      Meet Gemini 4 Neon, a new model option in AI Service!
-      Explore another addition to our growing collection of AI
-      experiences, select Gemini 4 Neon from the Gemini model
-      dropdown, and start chatting. Whether you're asking questions,
-      exploring ideas, or working on something new, Gemini 4 Neon
-      is ready to join your AI Service experience.
-    </p>
-
-  </div>
-</div>
-
 <div class="app">
 
 <aside class="sidebar">
@@ -613,22 +637,10 @@ select:focus, input:focus, textarea:focus {
     <option value="Encyclopedia AI">Encyclopedia AI</option>
   </select>
 
-  <div class="section-label" id="modelLabel">
-    Model
-  </div>
+  <div class="section-label" id="modelLabel">Model</div>
 
   <select id="model">
     <option value="gemini-3-flash">Gemini 3 Flash</option>
-    <option value="gemini-3-1">Gemini 3.1</option>
-    <option value="gemini-3-1-pro">Gemini 3.1 Pro</option>
-    <option value="gemini-3-5-flash">Gemini 3.5 Flash</option>
-    <option value="gemini-3-6-flash">Gemini 3.6 Flash</option>
-    <option value="gemini-3-7-flash">Gemini 3.7 Flash</option>
-    <option value="gemini-3-8-flash">Gemini 3.8 Flash</option>
-    <option value="gemini-4-hydrogen">Gemini 4 Hydrogen</option>
-    <option value="gemini-4-argon">Gemini 4 Argon</option>
-    <option value="gemini-4-carbon">Gemini 4 Carbon</option>
-    <option value="gemini-4-neon">Gemini 4 Neon</option>
   </select>
 
   <div class="section-label">Your chats</div>
@@ -715,6 +727,44 @@ select:focus, input:focus, textarea:focus {
 </main>
 </div>
 
+<!-- GEMINI 4 NEON POPUP -->
+
+<div class="neon-overlay" id="neonOverlay">
+  <div
+    class="neon-popup"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="neonTitle"
+  >
+    <button
+      class="neon-close"
+      id="neonClose"
+      aria-label="Close popup"
+      title="Close"
+    >×</button>
+
+    <div class="neon-heading">
+      <h2 id="neonTitle">Introducing Gemini 4 Neon!</h2>
+    </div>
+
+    <img
+      class="neon-image"
+      src="gemini-4-neon.webp"
+      alt="Gemini 4 Neon announcement"
+    >
+
+    <p class="neon-description">
+      Meet Gemini 4 Neon, a new model profile in AI Service.
+      It gives you another way to explore questions, work through
+      problems, and bring your ideas to life. Select Gemini 4 Neon
+      from the Gemini model list to try it out. As always, check
+      important information in AI responses.
+    </p>
+  </div>
+</div>
+
+<!-- HTML PREVIEW -->
+
 <div class="preview-overlay" id="previewOverlay">
   <div class="preview-window">
     <div class="preview-header">
@@ -734,35 +784,6 @@ select:focus, input:focus, textarea:focus {
 </div>
 
 <script>
-/* =========================================
-   GEMINI 4 NEON ANNOUNCEMENT LOGIC
-========================================= */
-
-function closeAnnouncement() {
-  $("announcementOverlay").classList.remove("active");
-}
-
-function showAnnouncementIfNeeded() {
-  const storageKey = "ai_service_neon_announcement_visits";
-
-  try {
-    const visits = Number(
-      localStorage.getItem(storageKey) || "0"
-    );
-
-    if (visits < 2) {
-      localStorage.setItem(
-        storageKey,
-        String(visits + 1)
-      );
-
-      $("announcementOverlay").classList.add("active");
-    }
-  } catch (error) {
-    console.warn("Announcement visit tracking unavailable:", error);
-  }
-}
-
 /* =========================================
    AI SERVICE
 ========================================= */
@@ -812,6 +833,85 @@ const $ = id => document.getElementById(id);
 
 if (window.marked && typeof window.marked.setOptions === "function") {
   window.marked.setOptions({ breaks: true, gfm: true });
+
+  /* Math support for Markdown */
+
+  window.marked.use({
+    extensions: [
+      {
+        name: "mathBlock",
+        level: "block",
+
+        tokenizer(source) {
+          const match =
+            /^\$\$([\s\S]+?)\$\$(?:\n|$)/.exec(source);
+
+          if (!match) return;
+
+          return {
+            type: "mathBlock",
+            raw: match[0],
+            text: match[1].trim()
+          };
+        },
+
+        renderer(token) {
+          return (
+            '<div class="math-display">\\[' +
+            escapeHTML(token.text) +
+            '\\]</div>'
+          );
+        }
+      },
+
+      {
+        name: "mathInline",
+        level: "inline",
+
+        start(source) {
+          const a = source.indexOf("\\(");
+          const b = source.indexOf("$");
+
+          if (a === -1) return b;
+          if (b === -1) return a;
+
+          return Math.min(a, b);
+        },
+
+        tokenizer(source) {
+          const bracketMatch =
+            /^\\\((.+?)\\\)/.exec(source);
+
+          if (bracketMatch) {
+            return {
+              type: "mathInline",
+              raw: bracketMatch[0],
+              text: bracketMatch[1]
+            };
+          }
+
+          const dollarMatch =
+            /^\$([^$\n]+)\$/.exec(source);
+
+          if (dollarMatch) {
+            return {
+              type: "mathInline",
+              raw: dollarMatch[0],
+              text: dollarMatch[1]
+            };
+          }
+        },
+
+        renderer(token) {
+          return (
+            '\\(' +
+            escapeHTML(token.text) +
+            '\\)'
+          );
+        }
+      }
+    ]
+  });
 }
 
 function makeId() {
@@ -832,6 +932,65 @@ function saveChats() {
   } catch (error) {
     console.error("Could not save chats:", error);
   }
+}
+
+/* =========================================
+   GEMINI POPUP
+========================================= */
+
+function showNeonPopup() {
+  const key = "ai_service_neon_visits";
+
+  let visits = 0;
+
+  try {
+    visits = Number(localStorage.getItem(key) || 0);
+
+    if (!Number.isFinite(visits) || visits < 0) {
+      visits = 0;
+    }
+
+    if (visits < 2) {
+      localStorage.setItem(key, String(visits + 1));
+      $("neonOverlay").classList.add("active");
+    }
+
+  } catch (error) {
+    console.warn("Popup visit tracking unavailable:", error);
+  }
+}
+
+function closeNeonPopup() {
+  $("neonOverlay").classList.remove("active");
+}
+
+$("neonClose").addEventListener("click", closeNeonPopup);
+
+$("neonOverlay").addEventListener("click", event => {
+  if (event.target === $("neonOverlay")) {
+    closeNeonPopup();
+  }
+});
+
+/* =========================================
+   MATH RENDERING
+========================================= */
+
+function typesetMath(container) {
+  if (!container) return;
+
+  function render() {
+    if (!window.MathJax || !window.MathJax.typesetPromise) {
+      setTimeout(render, 150);
+      return;
+    }
+
+    window.MathJax.typesetPromise([container]).catch(error => {
+      console.warn("Math rendering error:", error);
+    });
+  }
+
+  render();
 }
 
 /* =========================================
@@ -1211,7 +1370,7 @@ $("previewOverlay").addEventListener("click", event => {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") {
     closePreview();
-    closeAnnouncement();
+    closeNeonPopup();
   }
 });
 
@@ -1280,6 +1439,7 @@ function addMessage(role, content) {
   $("messages").appendChild(message);
 
   enhanceCodeBlocks(message);
+  typesetMath(body);
 
   $("messages").scrollTop =
     $("messages").scrollHeight;
@@ -1653,7 +1813,7 @@ async function sendMessage() {
 
     if (hasImageFile || hasPreviousImage) {
       alert(
-        "Cloudflare currently supports text messages only. Remove the image or start a new Cloudflare chat. You can use Gemini or the supported Groq model for image input."
+        "Cloudflare currently supports text messages only. Remove the image or start a new Cloudflare chat. You can use a supported vision model for image input."
       );
 
       return;
@@ -1899,6 +2059,7 @@ async function sendMessage() {
     loading = assistantMessage;
 
     enhanceCodeBlocks(assistantMessage);
+    typesetMath(assistantBody);
 
     chat.messages.push({
       role: "assistant",
@@ -1931,7 +2092,7 @@ async function sendMessage() {
 
 loadChats();
 loadModels();
-showAnnouncementIfNeeded();
+showNeonPopup();
 
 </script>
 
