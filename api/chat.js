@@ -1,4 +1,3 @@
-
 const GEMINI_API_MODEL = "gemini-3-flash-preview";
 
 const GEMINI_PROFILES = {
@@ -77,13 +76,13 @@ function cleanMessages(messages) {
     });
 }
 
-async function callGemini(key, messages, profile) {
-  const contents = messages.map(message => {
+function toGeminiContents(messages) {
+  return messages.map(message => {
     const parts = typeof message.content === "string"
       ? [{ text: message.content }]
       : message.content.map(part => {
           if (part.type === "text") {
-            return { text: part.text };
+            return { text: String(part.text || "") };
           }
 
           if (part.type === "image_url") {
@@ -113,53 +112,6 @@ async function callGemini(key, messages, profile) {
       parts
     };
   });
-
-  const systemInstruction = {
-    parts: [{
-      text:
-        "You are an AI assistant in AI Service. " +
-        profile.instruction +
-        " Use this profile name when asked which profile is selected. " +
-        "Be helpful, accurate, clear, and natural."
-    }]
-  };
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_API_MODEL}:generateContent?key=${encodeURIComponent(key)}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        systemInstruction,
-        contents,
-        generationConfig: {
-          temperature: 0.7
-        }
-      })
-    }
-  );
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    console.error("Gemini error:", data);
-
-    throw new Error(
-      data.error?.message || `Gemini error (${response.status})`
-    );
-  }
-
-  const reply = (data.candidates?.[0]?.content?.parts || [])
-    .map(part => part.text || "")
-    .join("");
-
-  if (!reply.trim()) {
-    throw new Error("Gemini returned an empty response.");
-  }
-
-  return reply;
 }
 
 export default async function handler(req, res) {
@@ -171,21 +123,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const {
-      provider,
-      model,
-      messages
-    } = req.body || {};
+    const { provider, model, messages } = req.body || {};
 
-    if (String(provider || "").toLowerCase() !== "gemini" &&
-        String(provider || "").toLowerCase() !== "google") {
+    const normalizedProvider = String(provider || "").toLowerCase();
+
+    if (!["gemini", "google"].includes(normalizedProvider)) {
       return res.status(400).json({
         success: false,
         error: "Only Gemini is enabled right now."
       });
     }
 
-    if (!model || typeof model !== "string") {
+    if (typeof model !== "string" || !model) {
       return res.status(400).json({
         success: false,
         error: "Select a Gemini profile first."
@@ -210,29 +159,101 @@ export default async function handler(req, res) {
       });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    const key = process.env.GEMINI_API_KEY;
+
+    if (!key) {
       throw new Error("Gemini API key is missing.");
     }
 
-    const reply = await callGemini(
-      process.env.GEMINI_API_KEY,
-      clean,
-      profile
+    const systemInstruction = {
+      parts: [{
+        text:
+          "You are an AI assistant in AI Service. " +
+          profile.instruction +
+          " Use this profile name when asked which profile is selected. " +
+          "Be helpful, accurate, clear, and natural."
+      }]
+    };
+
+    const upstreamUrl =
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_API_MODEL}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
+
+    const upstream = await fetch(upstreamUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream"
+      },
+      body: JSON.stringify({
+        systemInstruction,
+        contents: toGeminiContents(clean),
+        generationConfig: {
+          temperature: 0.7
+        }
+      })
+    });
+
+    if (!upstream.ok) {
+      const errorData = await upstream.json().catch(() => ({}));
+
+      console.error("Gemini error:", errorData);
+
+      return res.status(upstream.status).json({
+        success: false,
+        error:
+          errorData.error?.message ||
+          `Gemini error (${upstream.status})`
+      });
+    }
+
+    if (!upstream.body) {
+      throw new Error("Gemini did not return a response stream.");
+    }
+
+    res.statusCode = 200;
+
+    res.setHeader(
+      "Content-Type",
+      "text/event-stream; charset=utf-8"
     );
 
-    return res.status(200).json({
-      success: true,
-      provider: "gemini",
-      model: profile.name,
-      reply
-    });
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+
+    if (typeof res.flushHeaders === "function") {
+      res.flushHeaders();
+    }
+
+    const reader = upstream.body.getReader();
+
+    while (true) {
+      const { value, done } = await reader.read();
+
+      if (done) break;
+
+      if (res.destroyed) {
+        await reader.cancel().catch(() => {});
+        return;
+      }
+
+      if (!res.write(Buffer.from(value))) {
+        await new Promise(resolve => res.once("drain", resolve));
+      }
+    }
+
+    return res.end();
 
   } catch (error) {
     console.error("Chat error:", error);
 
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Something went wrong."
-    });
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        error: error.message || "Something went wrong."
+      });
+    }
+
+    return res.end();
   }
 }
