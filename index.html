@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -307,6 +306,32 @@ select:focus, input:focus, textarea:focus {
 
 #fileInput { display: none; }
 
+.encyclopedia-panel {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  background: var(--bg);
+}
+
+.encyclopedia-panel.active { display: block; }
+
+.encyclopedia-widget {
+  width: 100%;
+  min-height: 70vh;
+  height: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--panel);
+  padding: 10px;
+}
+
+.encyclopedia-widget > div { min-height: 65vh; }
+
 .attachments {
   display: flex;
   flex-wrap: wrap;
@@ -390,18 +415,11 @@ select:focus, input:focus, textarea:focus {
   <div class="section-label">Provider</div>
 
   <select id="provider" onchange="providerChanged()">
-    <option value="Gemini">Google Gemini</option>
-    <option value="Groq">ChatGPT</option>
-    <option value="OpenAI (OpenRouter)">OpenAI</option>
-    <option value="Gemini (OpenRouter)">Gemini via OpenRouter</option>
-    <option value="DeepSeek">DeepSeek</option>
-    <option value="Claude">Claude</option>
-    <option value="Qwen">Qwen</option>
-    <option value="Llama">Llama</option>
-    <option value="Other">Other models</option>
+    <option value="Gemini">Gemini</option>
+    <option value="Encyclopedia AI">Encyclopedia AI</option>
   </select>
 
-  <div class="section-label">Model</div>
+  <div class="section-label" id="modelLabel">Model</div>
 
   <select id="model">
     <option value="">Loading models...</option>
@@ -428,7 +446,17 @@ select:focus, input:focus, textarea:focus {
     </div>
   </section>
 
-  <section class="composer-area">
+  <section class="encyclopedia-panel" id="encyclopediaPanel" aria-label="Encyclopedia AI">
+    <div class="encyclopedia-widget">
+      <script src="https://elfsightcdn.com/platform.js" async></script>
+      <div
+        class="elfsight-app-7568ba73-5055-478b-b276-749a252f0d1e"
+        data-elfsight-app-lazy>
+      </div>
+    </div>
+  </section>
+
+  <section class="composer-area" id="composerArea">
     <div class="composer">
 
       <div class="toolbar">
@@ -535,27 +563,49 @@ function loadChats() {
     chats = JSON.parse(
       localStorage.getItem("ai_service_chats") || "[]"
     );
+    if (!Array.isArray(chats)) chats = [];
   } catch {
     chats = [];
   }
 
+  // Older versions saved several provider names. Existing chat history
+  // remains available and is treated as Gemini chat history.
+  chats.forEach(chat => {
+    chat.provider = "Gemini";
+    if (!Array.isArray(chat.messages)) chat.messages = [];
+  });
+
+  const savedProvider = localStorage.getItem("ai_service_provider");
+  $("provider").value = savedProvider === "Encyclopedia AI"
+    ? "Encyclopedia AI"
+    : "Gemini";
+
   if (chats.length) {
     currentChatId = chats[0].id;
-    $("provider").value = chats[0].provider || "Gemini";
     renderChat();
   } else {
     newChat();
+    if (savedProvider === "Encyclopedia AI") {
+      $("provider").value = "Encyclopedia AI";
+      localStorage.setItem("ai_service_provider", "Encyclopedia AI");
+    }
   }
 
   renderHistory();
+  updateProviderView();
 }
 
 function newChat() {
+  // Chat history belongs to Gemini. Encyclopedia AI runs in its own
+  // embedded Elfsight panel and does not create local chat records.
+  $("provider").value = "Gemini";
+  localStorage.setItem("ai_service_provider", "Gemini");
+
   const chat = {
     id: makeId(),
     title: "New Chat",
     messages: [],
-    provider: $("provider").value,
+    provider: "Gemini",
     model: $("model").value
   };
 
@@ -565,6 +615,8 @@ function newChat() {
   saveChats();
   renderChat();
   renderHistory();
+  updateModels(chat.model);
+  updateProviderView();
 
   $("prompt").focus();
 }
@@ -585,16 +637,16 @@ function renderHistory() {
 
     title.onclick = () => {
       currentChatId = chat.id;
-      $("provider").value = chat.provider || "Gemini";
+      $("provider").value = "Gemini";
+      localStorage.setItem("ai_service_provider", "Gemini");
       renderChat();
       updateModels(chat.model);
+      updateProviderView();
       renderHistory();
     };
 
     const actions = document.createElement("div");
-    actions.className = "history-actions";
-
-    const menu = document.createElement("button");
+    actions.className = "history-actions";    const menu = document.createElement("button");
     menu.textContent = "⋯";
 
     menu.onclick = event => {
@@ -792,17 +844,18 @@ async function loadModels() {
   $("modelStatus").textContent = "Loading models...";
 
   try {
-    const response = await fetch("/api/models");
+    const response = await fetch("/api/models", { cache: "no-store" });
     const data = await response.json();
 
-    if (!response.ok) {
+    if (!response.ok || !data.success) {
       throw new Error(data.error || "Could not load models.");
     }
 
     groups = data.groups || {};
-    updateModels();
+    updateModels(currentChat()?.model || "");
 
-    $("modelStatus").textContent = "Models loaded";
+    $("modelStatus").textContent =
+      (groups.Gemini || []).length + " Gemini profiles loaded";
 
   } catch (error) {
     $("modelStatus").textContent = error.message;
@@ -812,47 +865,52 @@ async function loadModels() {
 }
 
 function providerChanged() {
-  updateModels();
+  const provider = $("provider").value;
+  localStorage.setItem("ai_service_provider", provider);
 
-  const chat = currentChat();
-
-  if (chat) {
-    chat.provider = $("provider").value;
-    chat.model = $("model").value;
-    saveChats();
+  if (provider === "Gemini") {
+    const chat = currentChat();
+    updateModels(chat?.model || "");
   }
+
+  updateProviderView();
+}
+
+function updateProviderView() {
+  const isEncyclopedia = $("provider").value === "Encyclopedia AI";
+
+  $("modelLabel").style.display = isEncyclopedia ? "none" : "block";
+  $("model").style.display = isEncyclopedia ? "none" : "block";
+  $("modelStatus").style.display = isEncyclopedia ? "none" : "block";
+  $("messages").style.display = isEncyclopedia ? "none" : "block";
+  $("composerArea").style.display = isEncyclopedia ? "none" : "block";
+  $("encyclopediaPanel").classList.toggle("active", isEncyclopedia);
+
+  $("chatTitle").textContent = isEncyclopedia
+    ? "Encyclopedia AI"
+    : (currentChat()?.title || "New Chat");
 }
 
 function updateModels(preferredModel = "") {
-  const provider = $("provider").value;
-  const models = groups[provider] || [];
-
+  const models = groups.Gemini || [];
   $("model").innerHTML = "";
 
   if (!models.length) {
-    $("model").add(
-      new Option("No available models", "")
-    );
+    $("model").add(new Option("No Gemini models available", ""));
     return;
   }
 
   models.forEach(model => {
-    $("model").add(
-      new Option(model.name, model.id)
-    );
+    $("model").add(new Option(model.name, model.id));
   });
 
-  if (
-    preferredModel &&
-    models.some(model => model.id === preferredModel)
-  ) {
+  if (preferredModel && models.some(model => model.id === preferredModel)) {
     $("model").value = preferredModel;
   }
 
   const chat = currentChat();
-
   if (chat) {
-    chat.provider = provider;
+    chat.provider = "Gemini";
     chat.model = $("model").value;
     saveChats();
   }
@@ -958,6 +1016,12 @@ async function sendMessage() {
   if (!text && !selectedFiles.length) return;
 
   const provider = $("provider").value;
+
+  if (provider === "Encyclopedia AI") {
+    updateProviderView();
+    return;
+  }
+
   const model = $("model").value;
 
   if (!model) {
@@ -1075,14 +1139,9 @@ async function sendMessage() {
       chat.title = displayText.slice(0, 35);
     }
 
-    const apiProvider =
-      provider === "Gemini"
-        ? "Gemini"
-        : provider === "Groq"
-          ? "Groq"
-          : "OpenRouter";
+    const apiProvider = "Gemini";
 
-    chat.provider = provider;
+    chat.provider = "Gemini";
     chat.model = model;
 
     const userMessage = {
@@ -1180,6 +1239,7 @@ $("model").addEventListener("change", () => {
   const chat = currentChat();
 
   if (chat) {
+    chat.provider = "Gemini";
     chat.model = $("model").value;
     saveChats();
   }
