@@ -1,4 +1,8 @@
+
 const GEMINI_API_MODEL = "gemini-3-flash-preview";
+
+const CLOUDFLARE_MODEL =
+  "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 
 const GEMINI_PROFILES = {
   "gemini-3-flash": "Gemini 3 Flash",
@@ -184,6 +188,52 @@ function groqMessages(messages, model) {
   return output;
 }
 
+function cloudflareMessages(messages) {
+  const output = [{
+    role: "system",
+    content:
+      "You are an AI assistant in AI Service. " +
+      "Be helpful, accurate, clear, and natural. " +
+      "Use Markdown when it improves readability."
+  }];
+
+  for (const message of messages) {
+    const rawParts = Array.isArray(message.content)
+      ? message.content
+      : [{
+          type: "text",
+          text: String(message.content ?? "")
+        }];
+
+    if (
+      rawParts.some(part => part?.type === "image_url")
+    ) {
+      throw new Error(
+        "Cloudflare currently supports text messages only in AI Service. Switch to Gemini or a supported Groq model to send images."
+      );
+    }
+
+    const text = rawParts
+      .filter(part => part?.type === "text")
+      .map(part => String(part.text ?? ""))
+      .join("\n")
+      .slice(0, 100000);
+
+    if (!text.trim()) {
+      throw new Error(
+        "Cloudflare requires a text message."
+      );
+    }
+
+    output.push({
+      role: message.role,
+      content: text
+    });
+  }
+
+  return output;
+}
+
 async function fetchJson(
   url,
   options,
@@ -219,6 +269,7 @@ async function fetchJson(
 
     if (!response.ok) {
       throw new Error(
+        data.errors?.[0]?.message ||
         data.error?.message ||
         data.error ||
         `The AI provider request failed (${response.status}).`
@@ -411,9 +462,75 @@ export default async function handler(req, res) {
       });
     }
 
+    /* =====================================
+       CLOUDFLARE WORKERS AI
+    ===================================== */
+
+    if (
+      ["cloudflare", "workers ai", "workers-ai"].includes(provider)
+    ) {
+      if (
+        model !== CLOUDFLARE_MODEL &&
+        model !== "llama-3.3-70b-instruct-fp8-fast"
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: "Please select the supported Cloudflare model."
+        });
+      }
+
+      const apiToken =
+        process.env.CLOUDFLARE_API_TOKEN;
+
+      const accountId =
+        process.env.CLOUDFLARE_ACCOUNT_ID;
+
+      if (!apiToken || !accountId) {
+        return res.status(500).json({
+          success: false,
+          error:
+            "Cloudflare credentials are missing. Check CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in Vercel Environment Variables."
+        });
+      }
+
+      const data = await fetchJson(
+        `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/ai/run/${CLOUDFLARE_MODEL}`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiToken}`,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            messages: cloudflareMessages(messages),
+            temperature: 0.7,
+            max_tokens: 4096
+          })
+        }
+      );
+
+      const reply = String(
+        data.result?.response || ""
+      ).trim();
+
+      if (!reply) {
+        throw new Error(
+          "Cloudflare returned an empty response."
+        );
+      }
+
+      return res.status(200).json({
+        success: true,
+        reply,
+        provider: "Cloudflare",
+        model: "Llama 3.3 70B"
+      });
+    }
+
     return res.status(400).json({
       success: false,
-      error: "Unknown provider. Choose Gemini or Groq."
+      error: "Unknown provider. Choose Gemini, Groq, or Cloudflare."
     });
 
   } catch (error) {
