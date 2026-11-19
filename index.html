@@ -195,8 +195,6 @@ select:focus, input:focus, textarea:focus {
 
 .content p:first-child { margin-top: 0; }
 
-/* CODE BLOCKS */
-
 .code-block {
   margin: 16px 0;
   border: 1px solid #383838;
@@ -236,9 +234,7 @@ select:focus, input:focus, textarea:focus {
   transition: background .15s;
 }
 
-.code-action:hover {
-  background: #444;
-}
+.code-action:hover { background: #444; }
 
 .code-action.preview-button {
   background: #a92330;
@@ -286,8 +282,6 @@ select:focus, input:focus, textarea:focus {
   padding: 8px;
 }
 
-/* HTML PREVIEW */
-
 .preview-overlay {
   position: fixed;
   inset: 0;
@@ -299,9 +293,7 @@ select:focus, input:focus, textarea:focus {
   padding: 20px;
 }
 
-.preview-overlay.active {
-  display: flex;
-}
+.preview-overlay.active { display: flex; }
 
 .preview-window {
   width: min(1100px, 100%);
@@ -323,9 +315,7 @@ select:focus, input:focus, textarea:focus {
   border-bottom: 1px solid #383838;
 }
 
-.preview-header strong {
-  font-size: 14px;
-}
+.preview-header strong { font-size: 14px; }
 
 .preview-close {
   background: #333;
@@ -445,8 +435,98 @@ select:focus, input:focus, textarea:focus {
   padding: 10px;
 }
 
-.encyclopedia-widget > div {
-  min-height: 65vh;
+.encyclopedia-widget > div { min-height: 65vh; }
+
+/* =========================================
+   GEMINI 4 NEON ANNOUNCEMENT POPUP
+========================================= */
+
+.announcement-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, .82);
+  backdrop-filter: blur(7px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.announcement-overlay.active {
+  display: flex;
+}
+
+.announcement-box {
+  position: relative;
+  width: min(650px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #15151c;
+  border: 1px solid #343b60;
+  border-radius: 19px;
+  box-shadow: 0 0 45px rgba(55, 105, 255, .2);
+  padding: 25px;
+  animation: announcementAppear .3s ease-out;
+}
+
+@keyframes announcementAppear {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.announcement-close {
+  position: absolute;
+  top: 12px;
+  right: 13px;
+  width: 35px;
+  height: 35px;
+  border: 0;
+  border-radius: 50%;
+  background: #292c3a;
+  color: white;
+  font-size: 23px;
+  display: grid;
+  place-items: center;
+  transition: background .2s;
+}
+
+.announcement-close:hover {
+  background: #444b64;
+}
+
+.announcement-title {
+  font-size: clamp(23px, 5vw, 32px);
+  margin: 5px 40px 20px 0;
+  letter-spacing: -.8px;
+}
+
+.announcement-title span {
+  background: linear-gradient(90deg, #ffffff, #63e5ff, #a58aff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.announcement-image {
+  width: 100%;
+  display: block;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  border: 1px solid #303c65;
+}
+
+.announcement-description {
+  color: #c4c8d7;
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
 }
 
 @media(max-width:700px) {
@@ -460,11 +540,60 @@ select:focus, input:focus, textarea:focus {
   .brand { font-size: 16px; }
   .topbar { padding: 10px; }
   .preview-overlay { padding: 7px; }
+
+  .announcement-box {
+    padding: 19px;
+    border-radius: 15px;
+  }
+
+  .announcement-description {
+    font-size: 14px;
+  }
 }
 </style>
 </head>
 
 <body>
+
+<!-- GEMINI 4 NEON ANNOUNCEMENT -->
+<div
+  class="announcement-overlay"
+  id="announcementOverlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="announcementTitle"
+>
+  <div class="announcement-box">
+
+    <button
+      class="announcement-close"
+      onclick="closeAnnouncement()"
+      aria-label="Close announcement"
+      title="Close"
+    >×</button>
+
+    <h2 class="announcement-title" id="announcementTitle">
+      Introducing <span>Gemini 4 Neon!</span>
+    </h2>
+
+    <img
+      class="announcement-image"
+      src="gemini4neon.png"
+      alt="Gemini 4 Neon announcement artwork"
+    >
+
+    <p class="announcement-description">
+      Meet Gemini 4 Neon, a new model option in AI Service!
+      Explore another addition to our growing collection of AI
+      experiences, select Gemini 4 Neon from the Gemini model
+      dropdown, and start chatting. Whether you're asking questions,
+      exploring ideas, or working on something new, Gemini 4 Neon
+      is ready to join your AI Service experience.
+    </p>
+
+  </div>
+</div>
+
 <div class="app">
 
 <aside class="sidebar">
@@ -480,6 +609,7 @@ select:focus, input:focus, textarea:focus {
   <select id="provider" onchange="providerChanged()">
     <option value="Gemini">Gemini</option>
     <option value="Groq">Groq</option>
+    <option value="Cloudflare">Cloudflare</option>
     <option value="Encyclopedia AI">Encyclopedia AI</option>
   </select>
 
@@ -585,7 +715,6 @@ select:focus, input:focus, textarea:focus {
 </main>
 </div>
 
-<!-- HTML PREVIEW WINDOW -->
 <div class="preview-overlay" id="previewOverlay">
   <div class="preview-window">
     <div class="preview-header">
@@ -605,6 +734,35 @@ select:focus, input:focus, textarea:focus {
 </div>
 
 <script>
+/* =========================================
+   GEMINI 4 NEON ANNOUNCEMENT LOGIC
+========================================= */
+
+function closeAnnouncement() {
+  $("announcementOverlay").classList.remove("active");
+}
+
+function showAnnouncementIfNeeded() {
+  const storageKey = "ai_service_neon_announcement_visits";
+
+  try {
+    const visits = Number(
+      localStorage.getItem(storageKey) || "0"
+    );
+
+    if (visits < 2) {
+      localStorage.setItem(
+        storageKey,
+        String(visits + 1)
+      );
+
+      $("announcementOverlay").classList.add("active");
+    }
+  } catch (error) {
+    console.warn("Announcement visit tracking unavailable:", error);
+  }
+}
+
 /* =========================================
    AI SERVICE
 ========================================= */
@@ -631,9 +789,18 @@ const FALLBACK_GROQ_MODELS = [
   { id: "openai/gpt-oss-safeguard-20b", name: "GPT OSS Safeguard 20B", provider: "Groq" }
 ];
 
+const FALLBACK_CLOUDFLARE_MODELS = [
+  {
+    id: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    name: "Llama 3.3 70B",
+    provider: "Cloudflare"
+  }
+];
+
 let groups = {
   Gemini: FALLBACK_GEMINI_MODELS,
-  Groq: FALLBACK_GROQ_MODELS
+  Groq: FALLBACK_GROQ_MODELS,
+  Cloudflare: FALLBACK_CLOUDFLARE_MODELS
 };
 
 let chats = [];
@@ -685,7 +852,9 @@ function loadChats() {
   }
 
   chats.forEach(chat => {
-    if (!["Gemini", "Groq"].includes(chat.provider)) {
+    if (
+      !["Gemini", "Groq", "Cloudflare"].includes(chat.provider)
+    ) {
       chat.provider = "Gemini";
     }
 
@@ -705,6 +874,7 @@ function loadChats() {
   const restoredProvider = [
     "Gemini",
     "Groq",
+    "Cloudflare",
     "Encyclopedia AI"
   ].includes(savedProvider)
     ? savedProvider
@@ -769,6 +939,7 @@ function newChat() {
   renderChat();
   renderHistory();
   updateProviderView();
+  updateModels(chat.model, "Gemini");
 
   $("prompt").focus();
 }
@@ -854,7 +1025,17 @@ function renderHistory() {
           if (!currentChatId) {
             createFirstChat();
           } else {
+            $("provider").value =
+              currentChat().provider || "Gemini";
+
             renderChat();
+
+            updateModels(
+              currentChat().model || "",
+              $("provider").value
+            );
+
+            updateProviderView();
           }
         }
 
@@ -1030,6 +1211,7 @@ $("previewOverlay").addEventListener("click", event => {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") {
     closePreview();
+    closeAnnouncement();
   }
 });
 
@@ -1457,6 +1639,27 @@ async function sendMessage() {
 
   if (!chat) return;
 
+  /* Cloudflare text-only check */
+
+  if (provider === "Cloudflare") {
+    const hasImageFile = selectedFiles.some(file =>
+      (file.type || "").startsWith("image/")
+    );
+
+    const hasPreviousImage = chat.messages.some(message =>
+      Array.isArray(message.content) &&
+      message.content.some(part => part?.type === "image_url")
+    );
+
+    if (hasImageFile || hasPreviousImage) {
+      alert(
+        "Cloudflare currently supports text messages only. Remove the image or start a new Cloudflare chat. You can use Gemini or the supported Groq model for image input."
+      );
+
+      return;
+    }
+  }
+
   busy = true;
 
   $("sendButton").disabled = true;
@@ -1728,6 +1931,7 @@ async function sendMessage() {
 
 loadChats();
 loadModels();
+showAnnouncementIfNeeded();
 
 </script>
 
