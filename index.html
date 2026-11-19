@@ -1,544 +1,818 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Service</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Service</title>
 
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/lib/common.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/styles/github-dark.min.css">
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/lib/common.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.11.1/styles/github-dark.min.css">
 
-<style>
-:root {
-  --bg: #101010;
-  --panel: #181818;
-  --panel2: #242424;
-  --text: #f5f5f5;
-  --muted: #999;
-  --red: #e63946;
-  --border: #333;
-}
+  <style>
+    :root {
+      --bg: #101010;
+      --sidebar: #151515;
+      --panel: #181818;
+      --panel2: #242424;
+      --text: #f5f5f5;
+      --muted: #999;
+      --red: #e63946;
+      --red-hover: #ff4b57;
+      --border: #333;
+    }
 
-* { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-body {
-  margin: 0;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, sans-serif;
-}
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
 
-button, input, textarea, select { font: inherit; }
-button { cursor: pointer; }
-button:disabled { opacity: .5; cursor: not-allowed; }
+    button, input, textarea, select {
+      font: inherit;
+    }
 
-.app { display: flex; height: 100vh; }
+    button {
+      cursor: pointer;
+    }
 
-.sidebar {
-  width: 270px;
-  flex-shrink: 0;
-  background: #151515;
-  border-right: 1px solid var(--border);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-}
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
 
-.brand {
-  font-size: 22px;
-  font-weight: bold;
-  padding: 10px 5px;
-}
+    .app {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+    }
 
-.brand span { color: var(--red); }
+    /* SIDEBAR */
 
-.primary {
-  background: var(--red);
-  color: white;
-  border: 0;
-  border-radius: 9px;
-  padding: 12px;
-  font-weight: bold;
-}
+    .sidebar {
+      width: 270px;
+      min-width: 270px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
 
-.secondary {
-  background: var(--panel2);
-  color: white;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 9px 12px;
-}
+    .brand {
+      font-size: 22px;
+      font-weight: bold;
+      padding: 10px 5px;
+    }
 
-select, input, textarea {
-  background: var(--panel2);
-  color: white;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 11px;
-  outline: none;
-  width: 100%;
-}
+    .brand span {
+      color: var(--red);
+    }
 
-select:focus, input:focus, textarea:focus {
-  border-color: var(--red);
-}
+    .primary {
+      background: var(--red);
+      color: white;
+      border: 0;
+      border-radius: 9px;
+      padding: 12px;
+      font-weight: bold;
+    }
 
-.section-label {
-  color: var(--muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 7px;
-}
+    .primary:hover,
+    .send:hover {
+      background: var(--red-hover);
+    }
 
-.history { flex: 1; overflow-y: auto; }
+    .secondary {
+      background: var(--panel2);
+      color: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+    }
 
-.history-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 9px;
-  border-radius: 8px;
-  margin-bottom: 4px;
-}
+    select, input, textarea {
+      background: var(--panel2);
+      color: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px;
+      outline: none;
+      width: 100%;
+    }
 
-.history-item:hover,
-.history-item.active { background: var(--panel2); }
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--red);
+    }
 
-.history-title {
-  flex: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: 13px;
-  cursor: pointer;
-}
+    .section-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 7px;
+    }
 
-.history-actions button {
-  background: transparent;
-  color: #aaa;
-  border: 0;
-  font-size: 17px;
-}
+    .history {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 80px;
+    }
 
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 9px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+    }
 
-.topbar {
-  height: 58px;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+    .history-item:hover,
+    .history-item.active {
+      background: var(--panel2);
+    }
 
-.messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 25px max(20px, calc((100% - 850px)/2));
-}
+    .history-title {
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 13px;
+      cursor: pointer;
+    }
 
-.welcome {
-  text-align: center;
-  margin: 100px auto 40px;
-  max-width: 600px;
-}
+    .history-actions {
+      position: relative;
+    }
 
-.welcome h1 { font-size: 34px; }
-.welcome p { color: var(--muted); }
+    .history-actions button {
+      background: transparent;
+      color: #aaa;
+      border: 0;
+      font-size: 19px;
+      padding: 2px 5px;
+    }
 
-.message {
-  display: flex;
-  gap: 13px;
-  margin: 24px 0;
-  align-items: flex-start;
-}
+    .history-actions button:hover {
+      color: white;
+    }
 
-.avatar {
-  min-width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--panel2);
-  font-size: 12px;
-  font-weight: bold;
-}
+    .history-menu {
+      position: absolute;
+      right: 0;
+      top: 28px;
+      z-index: 5;
+      width: 125px;
+      padding: 5px;
+      background: #292929;
+      border: 1px solid #444;
+      border-radius: 8px;
+      box-shadow: 0 8px 25px #0009;
+    }
 
-.message.user .avatar { background: var(--red); }
+    .history-menu button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      font-size: 12px;
+      padding: 9px;
+      border-radius: 5px;
+    }
 
-.content {
-  line-height: 1.65;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  flex: 1;
-}
+    .history-menu button:hover {
+      background: #3a3a3a;
+    }
 
-.content p:first-child { margin-top: 0; }
+    .history-menu .delete-option {
+      color: #ff737d;
+    }
 
-.content pre {
-  background: #090909;
-  border: 1px solid var(--border);
-  padding: 15px;
-  border-radius: 10px;
-  overflow-x: auto;
-}
+    /* MAIN AREA */
 
-.content code { font-family: Consolas, monospace; }
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      height: 100%;
+    }
 
-.content :not(pre) > code {
-  background: #292929;
-  padding: 2px 5px;
-  border-radius: 4px;
-}
+    .topbar {
+      min-height: 58px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
 
-.content img {
-  max-width: 100%;
-  border-radius: 10px;
-}
+    .topbar strong {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
 
-.content table {
-  border-collapse: collapse;
-  width: 100%;
-}
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 25px max(20px, calc((100% - 850px)/2));
+    }
 
-.content td,
-.content th {
-  border: 1px solid var(--border);
-  padding: 8px;
-}
+    .welcome {
+      text-align: center;
+      margin: 100px auto 40px;
+      max-width: 600px;
+    }
 
-.code-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  gap: 7px;
-  margin-bottom: -8px;
-}
+    .welcome h1 {
+      font-size: 34px;
+    }
 
-.code-toolbar button {
-  background: #292929;
-  color: white;
-  border: 1px solid #444;
-  border-radius: 5px;
-  padding: 5px 9px;
-  font-size: 11px;
-}
+    .welcome p {
+      color: var(--muted);
+    }
 
-.composer-area {
-  padding: 12px 20px 18px;
-  border-top: 1px solid var(--border);
-}
+    .message {
+      display: flex;
+      gap: 13px;
+      margin: 24px 0;
+      align-items: flex-start;
+    }
 
-.composer {
-  max-width: 850px;
-  margin: auto;
-  border: 1px solid #444;
-  background: var(--panel);
-  border-radius: 15px;
-  padding: 10px;
-}
+    .avatar {
+      min-width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--panel2);
+      font-size: 11px;
+      font-weight: bold;
+    }
 
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
-}
+    .message.user .avatar {
+      background: var(--red);
+    }
 
-.toolbar button {
-  background: var(--panel2);
-  color: white;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 7px 10px;
-  font-size: 12px;
-}
+    .content {
+      line-height: 1.65;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      flex: 1;
+    }
 
-#prompt {
-  border: 0;
-  background: transparent;
-  resize: none;
-  min-height: 65px;
-  max-height: 180px;
-  font-size: 15px;
-}
+    .content p:first-child {
+      margin-top: 0;
+    }
 
-.composer-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
+    .content pre {
+      background: #090909;
+      border: 1px solid var(--border);
+      padding: 15px;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
 
-.composer-bottom button {
-  border: 0;
-  border-radius: 8px;
-  padding: 10px 15px;
-}
+    .content code {
+      font-family: Consolas, monospace;
+    }
 
-.send {
-  background: var(--red);
-  color: white;
-  font-weight: bold;
-}
+    .content :not(pre) > code {
+      background: #292929;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
 
-.upload {
-  background: var(--panel2);
-  color: white;
-}
+    .content img {
+      max-width: 100%;
+      border-radius: 10px;
+    }
 
-.status {
-  color: var(--muted);
-  font-size: 12px;
-  text-align: center;
-  padding: 5px;
-}
+    .content table {
+      border-collapse: collapse;
+      width: 100%;
+    }
 
-#fileInput { display: none; }
+    .content td,
+    .content th {
+      border: 1px solid var(--border);
+      padding: 8px;
+    }
 
-.encyclopedia-panel {
-  display: none;
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 16px;
-  background: var(--bg);
-}
+    .code-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 7px;
+      margin-bottom: -8px;
+    }
 
-.encyclopedia-panel.active { display: block; }
+    .code-toolbar button {
+      background: #292929;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 5px;
+      padding: 5px 9px;
+      font-size: 11px;
+    }
 
-.encyclopedia-widget {
-  width: 100%;
-  min-height: 70vh;
-  height: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--panel);
-  padding: 10px;
-}
+    /* COMPOSER */
 
-.encyclopedia-widget > div { min-height: 65vh; }
+    .composer-area {
+      padding: 12px 20px 18px;
+      border-top: 1px solid var(--border);
+    }
 
-.attachments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin: 8px 0;
-}
+    .composer {
+      max-width: 850px;
+      margin: auto;
+      border: 1px solid #444;
+      background: var(--panel);
+      border-radius: 15px;
+      padding: 10px;
+    }
 
-.attachment {
-  background: #292929;
-  border: 1px solid #444;
-  padding: 7px 10px;
-  border-radius: 7px;
-  font-size: 12px;
-}
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
 
-.attachment button {
-  background: none;
-  color: white;
-  border: 0;
-  margin-left: 5px;
-}
+    .toolbar button {
+      background: var(--panel2);
+      color: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
 
-.modal {
-  position: fixed;
-  inset: 0;
-  background: #000b;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  z-index: 10;
-}
+    #prompt {
+      border: 0;
+      background: transparent;
+      resize: none;
+      min-height: 65px;
+      max-height: 180px;
+      font-size: 15px;
+    }
 
-.modal.open { display: flex; }
+    .composer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
 
-.modal-box {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  width: min(800px, 100%);
-  max-height: 90vh;
-  overflow: auto;
-}
+    .composer-bottom button {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 15px;
+    }
 
-.modal-box textarea {
-  min-height: 300px;
-  margin: 12px 0;
-  resize: vertical;
-}
+    .send {
+      background: var(--red);
+      color: white;
+      font-weight: bold;
+    }
 
-.preview-frame {
-  width: 100%;
-  height: 400px;
-  background: white;
-  border: 0;
-  border-radius: 8px;
-}
+    .upload {
+      background: var(--panel2);
+      color: white;
+    }
 
-@media(max-width:700px) {
-  .sidebar { width: 190px; padding: 9px; }
-  .messages { padding: 15px; }
-  .composer-area { padding: 8px; }
-}
+    .status {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      padding: 5px;
+    }
 
-@media(max-width:500px) {
-  .sidebar { width: 145px; }
-  .brand { font-size: 16px; }
-}
-</style>
+    #fileInput {
+      display: none;
+    }
+
+    .attachments {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 8px 0;
+    }
+
+    .attachment {
+      background: #292929;
+      border: 1px solid #444;
+      padding: 7px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+
+    .attachment button {
+      background: none;
+      color: white;
+      border: 0;
+      margin-left: 5px;
+      padding: 0;
+    }
+
+    /* ENCYCLOPEDIA AI */
+
+    .encyclopedia-panel {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 16px;
+      background: var(--bg);
+    }
+
+    .encyclopedia-panel.active {
+      display: block;
+    }
+
+    .encyclopedia-widget {
+      width: 100%;
+      min-height: 70vh;
+      height: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--panel);
+      padding: 10px;
+    }
+
+    .encyclopedia-widget > div {
+      min-height: 65vh;
+    }
+
+    /* MODALS */
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: #000b;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 10;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      width: min(800px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    .modal-box textarea {
+      min-height: 300px;
+      margin: 12px 0;
+      resize: vertical;
+    }
+
+    .preview-frame {
+      width: 100%;
+      height: 400px;
+      background: white;
+      border: 0;
+      border-radius: 8px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .modal-actions button {
+      padding: 9px 14px;
+      border-radius: 7px;
+      border: 0;
+    }
+
+    .cancel-button {
+      background: #333;
+      color: white;
+    }
+
+    .confirm-button {
+      background: var(--red);
+      color: white;
+    }
+
+    @media(max-width:700px) {
+      .sidebar {
+        width: 190px;
+        min-width: 190px;
+        padding: 9px;
+      }
+
+      .messages {
+        padding: 15px;
+      }
+
+      .composer-area {
+        padding: 8px;
+      }
+    }
+
+    @media(max-width:500px) {
+      .sidebar {
+        width: 145px;
+        min-width: 145px;
+      }
+
+      .brand {
+        font-size: 16px;
+      }
+
+      .topbar {
+        padding: 10px;
+      }
+
+      .topbar .secondary {
+        padding: 7px;
+        font-size: 11px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 <div class="app">
 
-<aside class="sidebar">
-  <div class="brand">AI <span>Service</span></div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
 
-  <button class="primary" onclick="newChat()">+ New Chat</button>
+    <div class="brand">AI <span>Service</span></div>
 
-  <div class="section-label">Provider</div>
+    <button class="primary" onclick="newChat()">
+      + New Chat
+    </button>
 
-  <select id="provider" onchange="providerChanged()">
-    <option value="Gemini">Gemini</option>
-    <option value="Encyclopedia AI">Encyclopedia AI</option>
-  </select>
+    <div class="section-label">Provider</div>
 
-  <div class="section-label" id="modelLabel">Model</div>
+    <select id="provider" onchange="providerChanged()">
+      <option value="Gemini">Gemini</option>
+      <option value="Encyclopedia AI">Encyclopedia AI</option>
+    </select>
 
-  <select id="model">
-    <option value="">Loading models...</option>
-  </select>
-
-  <div class="section-label">Your chats</div>
-  <div class="history" id="history"></div>
-
-  <button class="secondary" onclick="openWriter()">Writing Editor</button>
-
-  <div class="status" id="modelStatus">Loading models...</div>
-</aside>
-
-<main class="main">
-  <header class="topbar">
-    <strong id="chatTitle">New Chat</strong>
-    <button class="secondary" onclick="newChat()">New Chat</button>
-  </header>
-
-  <section class="messages" id="messages">
-    <div class="welcome">
-      <h1>What can I help with?</h1>
-      <p>Ask anything. Let's get started.</p>
+    <div class="section-label" id="modelLabel">
+      Model
     </div>
-  </section>
 
-  <section class="encyclopedia-panel" id="encyclopediaPanel" aria-label="Encyclopedia AI">
-    <div class="encyclopedia-widget">
-      <script src="https://elfsightcdn.com/platform.js" async></script>
-      <div
-        class="elfsight-app-7568ba73-5055-478b-b276-749a252f0d1e"
-        data-elfsight-app-lazy>
-      </div>
+    <select id="model">
+      <option value="">Loading models...</option>
+    </select>
+
+    <div class="section-label">Your chats</div>
+
+    <div class="history" id="history"></div>
+
+    <button class="secondary" onclick="openWriter()">
+      Writing Editor
+    </button>
+
+    <div class="status" id="modelStatus">
+      Loading Gemini profiles...
     </div>
-  </section>
 
-  <section class="composer-area" id="composerArea">
-    <div class="composer">
+  </aside>
 
-      <div class="toolbar">
-        <button onclick="formatText('**','**')"><b>B</b></button>
-        <button onclick="formatText('*','*')"><i>I</i></button>
-        <button onclick="formatText('<u>','</u>')"><u>U</u></button>
-        <button onclick="formatText('## ','')">Heading</button>
-        <button onclick="formatText('- ','')">• List</button>
-        <button onclick="formatText('1. ','')">1. List</button>
-        <button onclick="formatText('> ','')">Quote</button>
-        <button onclick="formatText('\n```\n','\n```\n')">Code</button>
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <header class="topbar">
+      <strong id="chatTitle">New Chat</strong>
+      <button class="secondary" onclick="newChat()">
+        New Chat
+      </button>
+    </header>
+
+    <!-- GEMINI CHAT -->
+    <section class="messages" id="messages">
+      <div class="welcome">
+        <h1>What can I help with?</h1>
+        <p>Ask anything. Let's get started.</p>
       </div>
+    </section>
 
-      <textarea
-        id="prompt"
-        placeholder="Message AI Service..."
-        onkeydown="handleEnter(event)"
-      ></textarea>
+    <!-- ENCYCLOPEDIA AI -->
+    <section
+      class="encyclopedia-panel"
+      id="encyclopediaPanel"
+      aria-label="Encyclopedia AI"
+    >
+      <div class="encyclopedia-widget">
+        <div
+          class="elfsight-app-7568ba73-5055-478b-b276-749a252f0d1e"
+          data-elfsight-app-lazy>
+        </div>
+      </div>
+    </section>
 
-      <div class="attachments" id="attachments"></div>
+    <!-- MESSAGE COMPOSER -->
+    <section class="composer-area" id="composerArea">
 
-      <div class="composer-bottom">
-        <div>
-          <button
-            class="upload"
-            onclick="document.getElementById('fileInput').click()"
-          >+ Upload</button>
+      <div class="composer">
 
-          <input
-            id="fileInput"
-            type="file"
-            multiple
-            onchange="handleFiles(event)"
-          >
+        <div class="toolbar">
+          <button onclick="formatText('**','**')">
+            <b>B</b>
+          </button>
+
+          <button onclick="formatText('*','*')">
+            <i>I</i>
+          </button>
+
+          <button onclick="formatText('<u>','</u>')">
+            <u>U</u>
+          </button>
+
+          <button onclick="formatText('## ','')">
+            Heading
+          </button>
+
+          <button onclick="formatText('- ','')">
+            • List
+          </button>
+
+          <button onclick="formatText('1. ','')">
+            1. List
+          </button>
+
+          <button onclick="formatText('> ','')">
+            Quote
+          </button>
+
+          <button onclick="formatText('\n```\n','\n```\n')">
+            Code
+          </button>
         </div>
 
-        <button class="send" id="sendButton" onclick="sendMessage()">
-          Send ↑
-        </button>
-      </div>
-    </div>
+        <textarea
+          id="prompt"
+          placeholder="Message AI Service..."
+          onkeydown="handleEnter(event)"
+        ></textarea>
 
-    <div class="status">
-      AI responses may contain mistakes. Check important information.
-    </div>
-  </section>
-</main>
+        <div class="attachments" id="attachments"></div>
+
+        <div class="composer-bottom">
+
+          <div>
+            <button
+              class="upload"
+              onclick="document.getElementById('fileInput').click()"
+            >
+              + Upload
+            </button>
+
+            <input
+              id="fileInput"
+              type="file"
+              multiple
+              onchange="handleFiles(event)"
+            >
+          </div>
+
+          <button
+            class="send"
+            id="sendButton"
+            onclick="sendMessage()"
+          >
+            Send ↑
+          </button>
+
+        </div>
+      </div>
+
+      <div class="status">
+        AI responses may contain mistakes. Check important information.
+      </div>
+
+    </section>
+
+  </main>
 </div>
 
+<!-- WRITING EDITOR -->
 <div class="modal" id="writerModal">
   <div class="modal-box">
+
     <h2>Writing Editor</h2>
-    <textarea id="writerText" placeholder="Write something here..."></textarea>
-    <button class="secondary" onclick="insertWriting()">Insert into chat</button>
-    <button class="primary" onclick="closeWriter()">Close</button>
+
+    <textarea
+      id="writerText"
+      placeholder="Write something here..."
+    ></textarea>
+
+    <button class="secondary" onclick="insertWriting()">
+      Insert into chat
+    </button>
+
+    <button class="primary" onclick="closeWriter()">
+      Close
+    </button>
+
   </div>
 </div>
 
+<!-- CODE PREVIEW -->
 <div class="modal" id="previewModal">
   <div class="modal-box">
+
     <h2>Code Preview</h2>
+
     <iframe
       id="previewFrame"
       class="preview-frame"
       sandbox
       title="Code preview"
     ></iframe>
-    <button class="primary" onclick="closePreview()">Close Preview</button>
+
+    <button class="primary" onclick="closePreview()">
+      Close Preview
+    </button>
+
   </div>
 </div>
 
+<!-- RENAME CHAT -->
+<div class="modal" id="renameModal">
+  <div class="modal-box">
+
+    <h2>Rename chat</h2>
+
+    <p>Choose a new name for this conversation.</p>
+
+    <input
+      id="renameInput"
+      type="text"
+      maxlength="70"
+      placeholder="Chat name"
+    >
+
+    <div class="modal-actions">
+      <button class="cancel-button" onclick="closeRename()">
+        Cancel
+      </button>
+
+      <button class="confirm-button" onclick="confirmRename()">
+        Save
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ELFSIGHT SCRIPT -->
+<script src="https://elfsightcdn.com/platform.js" async></script>
+
 <script>
+/* =========================================================
+   AI SERVICE
+   Gemini profiles are loaded from /api/models.
+   Gemini messages are sent to /api/chat.
+   Encyclopedia AI is provided separately by Elfsight.
+========================================================= */
+
 marked.setOptions({
   breaks: true,
   gfm: true
 });
+
+/* STATE */
 
 let groups = {};
 let chats = [];
 let currentChatId = null;
 let selectedFiles = [];
 let busy = false;
+let renamingChatId = null;
 
 const $ = id => document.getElementById(id);
 
@@ -552,77 +826,99 @@ function currentChat() {
 }
 
 function saveChats() {
-  localStorage.setItem(
-    "ai_service_chats",
-    JSON.stringify(chats)
-  );
+  try {
+    localStorage.setItem(
+      "ai_service_chats",
+      JSON.stringify(chats)
+    );
+  } catch (error) {
+    console.error("Could not save chats:", error);
+  }
 }
+
+/* LOAD CHAT HISTORY */
 
 function loadChats() {
   try {
-    chats = JSON.parse(
+    const saved = JSON.parse(
       localStorage.getItem("ai_service_chats") || "[]"
     );
-    if (!Array.isArray(chats)) chats = [];
+
+    chats = Array.isArray(saved) ? saved : [];
+
   } catch {
     chats = [];
   }
 
-  // Older versions saved several provider names. Existing chat history
-  // remains available and is treated as Gemini chat history.
   chats.forEach(chat => {
+    if (!Array.isArray(chat.messages)) {
+      chat.messages = [];
+    }
+
     chat.provider = "Gemini";
-    if (!Array.isArray(chat.messages)) chat.messages = [];
   });
 
-  const savedProvider = localStorage.getItem("ai_service_provider");
-  $("provider").value = savedProvider === "Encyclopedia AI"
-    ? "Encyclopedia AI"
-    : "Gemini";
+  const savedProvider =
+    localStorage.getItem("ai_service_provider");
 
-  if (chats.length) {
+  $("provider").value =
+    savedProvider === "Encyclopedia AI"
+      ? "Encyclopedia AI"
+      : "Gemini";
+
+  if (chats.length > 0) {
     currentChatId = chats[0].id;
     renderChat();
   } else {
-    newChat();
-    if (savedProvider === "Encyclopedia AI") {
-      $("provider").value = "Encyclopedia AI";
-      localStorage.setItem("ai_service_provider", "Encyclopedia AI");
-    }
+    createChat(false);
   }
 
   renderHistory();
   updateProviderView();
 }
 
-function newChat() {
-  // Chat history belongs to Gemini. Encyclopedia AI runs in its own
-  // embedded Elfsight panel and does not create local chat records.
-  $("provider").value = "Gemini";
-  localStorage.setItem("ai_service_provider", "Gemini");
+/* CREATE NEW CHAT */
 
+function createChat(shouldFocus = true) {
   const chat = {
     id: makeId(),
     title: "New Chat",
     messages: [],
     provider: "Gemini",
-    model: $("model").value
+    model: $("model").value || ""
   };
 
   chats.unshift(chat);
   currentChatId = chat.id;
 
   saveChats();
-  renderChat();
   renderHistory();
-  updateModels(chat.model);
+  renderChat();
+
+  if (groups.Gemini?.length) {
+    updateModels(chat.model);
+  }
+
+  $("provider").value = "Gemini";
+  localStorage.setItem("ai_service_provider", "Gemini");
+
   updateProviderView();
 
-  $("prompt").focus();
+  if (shouldFocus) {
+    $("prompt").focus();
+  }
 }
 
+function newChat() {
+  if (busy) return;
+  createChat(true);
+}
+
+/* CHAT HISTORY DISPLAY */
+
 function renderHistory() {
-  $("history").innerHTML = "";
+  const history = $("history");
+  history.innerHTML = "";
 
   chats.forEach(chat => {
     const item = document.createElement("div");
@@ -633,80 +929,160 @@ function renderHistory() {
 
     const title = document.createElement("span");
     title.className = "history-title";
-    title.textContent = chat.title;
+    title.textContent = chat.title || "New Chat";
 
     title.onclick = () => {
+      if (busy) return;
+
       currentChatId = chat.id;
+
       $("provider").value = "Gemini";
       localStorage.setItem("ai_service_provider", "Gemini");
+
       renderChat();
-      updateModels(chat.model);
-      updateProviderView();
       renderHistory();
+
+      if (groups.Gemini?.length) {
+        updateModels(chat.model || "");
+      }
+
+      updateProviderView();
     };
 
     const actions = document.createElement("div");
-    actions.className = "history-actions";    const menu = document.createElement("button");
-    menu.textContent = "⋯";
+    actions.className = "history-actions";
 
-    menu.onclick = event => {
+    const menuButton = document.createElement("button");
+    menuButton.type = "button";
+    menuButton.textContent = "⋯";
+    menuButton.title = "Chat options";
+
+    menuButton.onclick = event => {
       event.stopPropagation();
 
-      const choice = prompt("Type rename or delete:");
+      const existing = actions.querySelector(".history-menu");
 
-      if (choice === "rename") {
-        const name = prompt("New chat name:", chat.title);
+      document.querySelectorAll(".history-menu").forEach(menu => {
+        menu.remove();
+      });
 
-        if (name && name.trim()) {
-          chat.title = name.trim();
-          saveChats();
-          renderHistory();
+      if (existing) return;
 
-          if (chat.id === currentChatId) {
-            $("chatTitle").textContent = chat.title;
-          }
-        }
-      }
+      const menu = document.createElement("div");
+      menu.className = "history-menu";
 
-      if (choice === "delete") {
-        if (confirm("Delete this chat?")) {
-          chats = chats.filter(
-            current => current.id !== chat.id
-          );
+      const renameButton = document.createElement("button");
+      renameButton.textContent = "Rename";
 
-          if (currentChatId === chat.id) {
-            currentChatId = null;
+      renameButton.onclick = () => {
+        menu.remove();
+        openRename(chat.id);
+      };
 
-            if (chats.length) {
-              currentChatId = chats[0].id;
-            } else {
-              saveChats();
-              newChat();
-              return;
-            }
+      const deleteButton = document.createElement("button");
+      deleteButton.textContent = "Delete";
+      deleteButton.className = "delete-option";
 
-            $("provider").value =
-              currentChat().provider || "Gemini";
+      deleteButton.onclick = () => {
+        menu.remove();
+        deleteChat(chat.id);
+      };
 
-            renderChat();
-          }
-
-          saveChats();
-          renderHistory();
-        }
-      }
+      menu.append(renameButton, deleteButton);
+      actions.appendChild(menu);
     };
 
-    actions.appendChild(menu);
+    actions.appendChild(menuButton);
     item.append(title, actions);
-
-    $("history").appendChild(item);
+    history.appendChild(item);
   });
 }
 
+/* RENAME CHAT */
+
+function openRename(id) {
+  const chat = chats.find(item => item.id === id);
+  if (!chat) return;
+
+  renamingChatId = id;
+  $("renameInput").value = chat.title || "";
+  $("renameModal").classList.add("open");
+
+  setTimeout(() => $("renameInput").focus(), 50);
+}
+
+function closeRename() {
+  $("renameModal").classList.remove("open");
+  renamingChatId = null;
+}
+
+function confirmRename() {
+  if (!renamingChatId) return;
+
+  const name = $("renameInput").value.trim();
+  if (!name) return;
+
+  const chat = chats.find(item => item.id === renamingChatId);
+  if (!chat) return;
+
+  chat.title = name;
+
+  saveChats();
+  renderHistory();
+
+  if (chat.id === currentChatId) {
+    $("chatTitle").textContent = name;
+  }
+
+  closeRename();
+}
+
+$("renameInput").addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    confirmRename();
+  }
+
+  if (event.key === "Escape") {
+    closeRename();
+  }
+});
+
+/* DELETE CHAT */
+
+function deleteChat(id) {
+  const chat = chats.find(item => item.id === id);
+  if (!chat) return;
+
+  if (!confirm("Delete this chat?")) return;
+
+  chats = chats.filter(item => item.id !== id);
+
+  if (currentChatId === id) {
+    currentChatId = chats[0]?.id || null;
+
+    if (!currentChatId) {
+      saveChats();
+      createChat(false);
+      return;
+    }
+
+    renderChat();
+
+    if (groups.Gemini?.length) {
+      updateModels(currentChat()?.model || "");
+    }
+  }
+
+  saveChats();
+  renderHistory();
+  updateProviderView();
+}
+
+/* MARKDOWN DISPLAY */
+
 function renderMarkdown(text) {
   return DOMPurify.sanitize(
-    marked.parse(text || "")
+    marked.parse(String(text || ""))
   );
 }
 
@@ -714,7 +1090,7 @@ function renderChat() {
   const chat = currentChat();
   if (!chat) return;
 
-  $("chatTitle").textContent = chat.title;
+  $("chatTitle").textContent = chat.title || "New Chat";
   $("messages").innerHTML = "";
 
   if (!chat.messages.length) {
@@ -731,13 +1107,17 @@ function renderChat() {
     let display = message.content;
 
     if (Array.isArray(display)) {
-      display = display
-        .map(part => {
-          if (part.type === "text") return part.text;
-          if (part.type === "image_url") return "[Image attached]";
-          return "";
-        })
-        .join("\n");
+      display = display.map(part => {
+        if (part.type === "text") {
+          return part.text;
+        }
+
+        if (part.type === "image_url") {
+          return "[Image attached]";
+        }
+
+        return "";
+      }).join("\n");
     }
 
     addMessage(message.role, display);
@@ -756,6 +1136,8 @@ function addMessage(role, content) {
   body.className = "content";
   body.innerHTML = renderMarkdown(content);
 
+  /* CODE BLOCK BUTTONS */
+
   body.querySelectorAll("pre").forEach(pre => {
     const code = pre.querySelector("code");
 
@@ -766,14 +1148,20 @@ function addMessage(role, content) {
     copy.textContent = "Copy code";
 
     copy.onclick = async () => {
-      await navigator.clipboard.writeText(
-        code?.innerText || pre.innerText
-      );
+      try {
+        await navigator.clipboard.writeText(
+          code?.innerText || pre.innerText
+        );
 
-      copy.textContent = "Copied!";
-      setTimeout(() => {
-        copy.textContent = "Copy code";
-      }, 1200);
+        copy.textContent = "Copied!";
+
+        setTimeout(() => {
+          copy.textContent = "Copy code";
+        }, 1200);
+
+      } catch {
+        copy.textContent = "Copy failed";
+      }
     };
 
     const preview = document.createElement("button");
@@ -792,11 +1180,13 @@ function addMessage(role, content) {
   });
 
   message.append(avatar, body);
-
   $("messages").appendChild(message);
+
   $("messages").scrollTop =
     $("messages").scrollHeight;
 }
+
+/* CODE PREVIEW */
 
 function previewCode(code) {
   if (!/<\s*(html|!doctype|body|div|script|style|h[1-6])\b/i.test(code)) {
@@ -813,18 +1203,25 @@ function closePreview() {
   $("previewFrame").srcdoc = "";
 }
 
+/* TEXT FORMATTING */
+
 function formatText(before, after) {
   const input = $("prompt");
+
   const start = input.selectionStart;
   const end = input.selectionEnd;
+
   const selected = input.value.slice(start, end);
 
   input.value =
     input.value.slice(0, start) +
-    before + selected + after +
+    before +
+    selected +
+    after +
     input.value.slice(end);
 
   input.focus();
+
   input.selectionStart = start + before.length;
   input.selectionEnd =
     start + before.length + selected.length;
@@ -840,89 +1237,199 @@ function handleEnter(event) {
   }
 }
 
+/* LOAD GEMINI MODELS */
+
 async function loadModels() {
-  $("modelStatus").textContent = "Loading models...";
+  const modelSelect = $("model");
+  const status = $("modelStatus");
+
+  status.textContent = "Loading Gemini profiles...";
+  modelSelect.innerHTML =
+    '<option value="">Loading models...</option>';
 
   try {
-    const response = await fetch("/api/models", { cache: "no-store" });
-    const data = await response.json();
+    const response = await fetch(
+      "/api/models?refresh=" + Date.now(),
+      {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          "Accept": "application/json"
+        }
+      }
+    );
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || "Could not load models.");
+    const responseText = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      throw new Error(
+        "The models API did not return valid JSON."
+      );
     }
 
-    groups = data.groups || {};
-    updateModels(currentChat()?.model || "");
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Models API error: HTTP " + response.status
+      );
+    }
 
-    $("modelStatus").textContent =
-      (groups.Gemini || []).length + " Gemini profiles loaded";
+    if (data.success !== true) {
+      throw new Error(
+        data.error || "The models API reported a failure."
+      );
+    }
+
+    const models = data.groups?.Gemini;
+
+    if (!Array.isArray(models) || models.length === 0) {
+      throw new Error(
+        "The API returned no Gemini profiles."
+      );
+    }
+
+    groups = {
+      ...data.groups,
+      Gemini: models
+    };
+
+    const savedModel = currentChat()?.model || "";
+
+    updateModels(savedModel);
+
+    status.textContent =
+      models.length + " Gemini profiles loaded";
 
   } catch (error) {
-    $("modelStatus").textContent = error.message;
-    $("model").innerHTML =
+    console.error("Gemini model loading error:", error);
+
+    modelSelect.innerHTML =
       '<option value="">Could not load models</option>';
+
+    status.textContent =
+      "Model loading failed: " + error.message;
   }
 }
 
+/* UPDATE MODEL DROPDOWN */
+
+function updateModels(preferredModel = "") {
+  const modelSelect = $("model");
+  const models = Array.isArray(groups.Gemini)
+    ? groups.Gemini
+    : [];
+
+  modelSelect.innerHTML = "";
+
+  if (models.length === 0) {
+    modelSelect.add(
+      new Option("No Gemini models available", "")
+    );
+    return;
+  }
+
+  models.forEach(model => {
+    modelSelect.add(
+      new Option(model.name, model.id)
+    );
+  });
+
+  const validPreferredModel = models.some(
+    model => model.id === preferredModel
+  );
+
+  const selectedModel = validPreferredModel
+    ? preferredModel
+    : models[0].id;
+
+  modelSelect.value = selectedModel;
+
+  const chat = currentChat();
+
+  if (chat) {
+    chat.provider = "Gemini";
+    chat.model = selectedModel;
+    saveChats();
+  }
+}
+
+/* PROVIDER SWITCHING */
+
 function providerChanged() {
   const provider = $("provider").value;
-  localStorage.setItem("ai_service_provider", provider);
+
+  localStorage.setItem(
+    "ai_service_provider",
+    provider
+  );
 
   if (provider === "Gemini") {
     const chat = currentChat();
-    updateModels(chat?.model || "");
+
+    if (groups.Gemini?.length) {
+      updateModels(chat?.model || "");
+    }
   }
 
   updateProviderView();
 }
 
 function updateProviderView() {
-  const isEncyclopedia = $("provider").value === "Encyclopedia AI";
+  const isEncyclopedia =
+    $("provider").value === "Encyclopedia AI";
 
-  $("modelLabel").style.display = isEncyclopedia ? "none" : "block";
-  $("model").style.display = isEncyclopedia ? "none" : "block";
-  $("modelStatus").style.display = isEncyclopedia ? "none" : "block";
-  $("messages").style.display = isEncyclopedia ? "none" : "block";
-  $("composerArea").style.display = isEncyclopedia ? "none" : "block";
-  $("encyclopediaPanel").classList.toggle("active", isEncyclopedia);
+  $("modelLabel").style.display =
+    isEncyclopedia ? "none" : "block";
+
+  $("model").style.display =
+    isEncyclopedia ? "none" : "block";
+
+  $("modelStatus").style.display =
+    isEncyclopedia ? "none" : "block";
+
+  $("messages").style.display =
+    isEncyclopedia ? "none" : "block";
+
+  $("composerArea").style.display =
+    isEncyclopedia ? "none" : "block";
+
+  $("encyclopediaPanel").classList.toggle(
+    "active",
+    isEncyclopedia
+  );
 
   $("chatTitle").textContent = isEncyclopedia
     ? "Encyclopedia AI"
     : (currentChat()?.title || "New Chat");
 }
 
-function updateModels(preferredModel = "") {
-  const models = groups.Gemini || [];
-  $("model").innerHTML = "";
+/* MODEL SELECTION */
 
-  if (!models.length) {
-    $("model").add(new Option("No Gemini models available", ""));
-    return;
-  }
-
-  models.forEach(model => {
-    $("model").add(new Option(model.name, model.id));
-  });
-
-  if (preferredModel && models.some(model => model.id === preferredModel)) {
-    $("model").value = preferredModel;
-  }
-
+$("model").addEventListener("change", () => {
   const chat = currentChat();
-  if (chat) {
-    chat.provider = "Gemini";
-    chat.model = $("model").value;
-    saveChats();
-  }
-}
+
+  if (!chat) return;
+
+  chat.provider = "Gemini";
+  chat.model = $("model").value;
+
+  saveChats();
+});
+
+/* FILE UPLOADS */
 
 async function fileToDataURL(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
     reader.onload = () => resolve(reader.result);
-    reader.onerror = () =>
+
+    reader.onerror = () => {
       reject(new Error("Could not read " + file.name));
+    };
 
     reader.readAsDataURL(file);
   });
@@ -936,6 +1443,7 @@ function handleFiles(event) {
   selectedFiles.push(...incoming);
 
   renderAttachments();
+
   event.target.value = "";
 }
 
@@ -947,6 +1455,7 @@ function renderAttachments() {
     item.className = "attachment";
 
     const name = document.createElement("span");
+
     name.textContent =
       file.name + " (" +
       (file.size / 1024).toFixed(1) +
@@ -954,6 +1463,7 @@ function renderAttachments() {
 
     const remove = document.createElement("button");
     remove.textContent = "×";
+    remove.title = "Remove attachment";
 
     remove.onclick = () => {
       selectedFiles.splice(index, 1);
@@ -965,6 +1475,8 @@ function renderAttachments() {
   });
 }
 
+/* DOCUMENT EXTRACTION */
+
 async function extractDocument(file) {
   const dataURL = await fileToDataURL(file);
   const base64 = dataURL.split(",")[1];
@@ -973,10 +1485,10 @@ async function extractDocument(file) {
     throw new Error("Could not encode " + file.name);
   }
 
-  // Keep requests small enough for the current Vercel function setup.
   if (base64.length > 3500000) {
     throw new Error(
-      file.name + " is too large for the current document reader. Try a smaller file."
+      file.name +
+      " is too large for the current document reader. Try a smaller file."
     );
   }
 
@@ -996,24 +1508,32 @@ async function extractDocument(file) {
   const data = await response.json();
 
   if (!response.ok || !data.success) {
-    throw new Error(data.error || "Could not extract " + file.name);
+    throw new Error(
+      data.error || "Could not extract " + file.name
+    );
   }
 
   const result = data.files?.[0];
 
   if (!result?.success) {
-    throw new Error(result?.error || "Could not read " + file.name);
+    throw new Error(
+      result?.error || "Could not read " + file.name
+    );
   }
 
   return result.text || "";
 }
+
+/* SEND MESSAGE */
 
 async function sendMessage() {
   if (busy) return;
 
   const text = $("prompt").value.trim();
 
-  if (!text && !selectedFiles.length) return;
+  if (!text && selectedFiles.length === 0) {
+    return;
+  }
 
   const provider = $("provider").value;
 
@@ -1025,14 +1545,16 @@ async function sendMessage() {
   const model = $("model").value;
 
   if (!model) {
-    alert("Please select a model.");
+    alert("Please select a Gemini model first.");
     return;
   }
 
   const chat = currentChat();
+
   if (!chat) return;
 
   busy = true;
+
   $("sendButton").disabled = true;
   $("sendButton").textContent = "Preparing...";
 
@@ -1047,8 +1569,13 @@ async function sendMessage() {
     }
 
     for (const file of selectedFiles) {
-      const type = file.type || "application/octet-stream";
-      const extension = file.name.split(".").pop().toLowerCase();
+      const type =
+        file.type || "application/octet-stream";
+
+      const extension =
+        file.name.split(".").pop().toLowerCase();
+
+      /* IMAGES */
 
       if (type.startsWith("image/")) {
         const allowed = [
@@ -1061,8 +1588,11 @@ async function sendMessage() {
         if (!allowed.includes(type)) {
           parts.push({
             type: "text",
-            text: "Image " + file.name + " has an unsupported image format."
+            text:
+              "Image " + file.name +
+              " has an unsupported image format."
           });
+
           continue;
         }
 
@@ -1079,8 +1609,11 @@ async function sendMessage() {
             url: dataURL
           }
         });
+      }
 
-      } else if (
+      /* TEXT FILES */
+
+      else if (
         type.startsWith("text/") ||
         /\.(txt|md|csv|json|js|jsx|ts|tsx|html|css|xml|yaml|yml|py|java|c|cpp|sql|log|sh)$/i.test(file.name)
       ) {
@@ -1092,8 +1625,11 @@ async function sendMessage() {
             "\n\nATTACHED FILE: " + file.name +
             "\nCONTENTS:\n" + contents
         });
+      }
 
-      } else if (
+      /* DOCUMENT FILES */
+
+      else if (
         ["pdf", "docx", "xlsx", "xls", "pptx"].includes(extension)
       ) {
         $("sendButton").textContent = "Reading files...";
@@ -1102,7 +1638,9 @@ async function sendMessage() {
           const contents = await extractDocument(file);
 
           if (!contents.trim()) {
-            throw new Error("No readable text was found in this file.");
+            throw new Error(
+              "No readable text was found in this file."
+            );
           }
 
           parts.push({
@@ -1111,16 +1649,20 @@ async function sendMessage() {
               "\n\nATTACHED FILE: " + file.name +
               "\nEXTRACTED CONTENTS:\n" + contents
           });
+
         } catch (error) {
           parts.push({
             type: "text",
             text:
-              "\n\nCould not read attached file " + file.name +
-              ". Reason: " + error.message
+              "\n\nCould not read attached file " +
+              file.name + ". Reason: " + error.message
           });
         }
+      }
 
-      } else {
+      /* OTHER FILE TYPES */
+
+      else {
         parts.push({
           type: "text",
           text:
@@ -1138,8 +1680,6 @@ async function sendMessage() {
     if (chat.messages.length === 0) {
       chat.title = displayText.slice(0, 35);
     }
-
-    const apiProvider = "Gemini";
 
     chat.provider = "Gemini";
     chat.model = model;
@@ -1163,8 +1703,11 @@ async function sendMessage() {
     saveChats();
     renderHistory();
 
+    /* LOADING MESSAGE */
+
     const loading = document.createElement("div");
     loading.className = "message";
+
     loading.innerHTML =
       '<div class="avatar">AI</div>' +
       '<div class="content">Thinking...</div>';
@@ -1173,25 +1716,41 @@ async function sendMessage() {
 
     $("sendButton").textContent = "Thinking...";
 
+    /* GEMINI API REQUEST */
+
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        provider: apiProvider,
+        provider: "Gemini",
         model,
         messages: chat.messages
       })
     });
 
-    const data = await response.json();
+    let data;
+
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error(
+        "The chat API returned an invalid response."
+      );
+    }
 
     loading.remove();
 
-    if (!response.ok) {
+    if (!response.ok || data.success === false) {
       throw new Error(
         data.error || "The request failed."
+      );
+    }
+
+    if (typeof data.reply !== "string") {
+      throw new Error(
+        "The chat API did not return a reply."
       );
     }
 
@@ -1201,9 +1760,13 @@ async function sendMessage() {
     });
 
     addMessage("assistant", data.reply);
+
     saveChats();
+    renderHistory();
 
   } catch (error) {
+    console.error("Message error:", error);
+
     addMessage(
       "assistant",
       "**Error:** " + error.message
@@ -1211,10 +1774,13 @@ async function sendMessage() {
 
   } finally {
     busy = false;
+
     $("sendButton").disabled = false;
     $("sendButton").textContent = "Send ↑";
   }
 }
+
+/* WRITING EDITOR */
 
 function openWriter() {
   $("writerModal").classList.add("open");
@@ -1235,19 +1801,31 @@ function insertWriting() {
   $("prompt").focus();
 }
 
-$("model").addEventListener("change", () => {
-  const chat = currentChat();
+/* CLOSE MODALS WHEN CLICKING OUTSIDE */
 
-  if (chat) {
-    chat.provider = "Gemini";
-    chat.model = $("model").value;
-    saveChats();
+$("writerModal").addEventListener("click", event => {
+  if (event.target === $("writerModal")) {
+    closeWriter();
   }
 });
 
+$("previewModal").addEventListener("click", event => {
+  if (event.target === $("previewModal")) {
+    closePreview();
+  }
+});
+
+$("renameModal").addEventListener("click", event => {
+  if (event.target === $("renameModal")) {
+    closeRename();
+  }
+});
+
+/* STARTUP */
+
 loadChats();
 loadModels();
-</script>
 
+</script>
 </body>
 </html>
