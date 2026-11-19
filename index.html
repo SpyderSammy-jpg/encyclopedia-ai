@@ -195,13 +195,69 @@ select:focus, input:focus, textarea:focus {
 
 .content p:first-child { margin-top: 0; }
 
+/* CODE BLOCKS */
+
+.code-block {
+  margin: 16px 0;
+  border: 1px solid #383838;
+  border-radius: 11px;
+  overflow: hidden;
+  background: #090909;
+}
+
+.code-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 11px;
+  background: #202020;
+  border-bottom: 1px solid #383838;
+}
+
+.code-language {
+  color: #aaa;
+  font-size: 12px;
+  text-transform: lowercase;
+}
+
+.code-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.code-action {
+  background: #303030;
+  color: #eee;
+  border: 1px solid #484848;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  transition: background .15s;
+}
+
+.code-action:hover {
+  background: #444;
+}
+
+.code-action.preview-button {
+  background: #a92330;
+  border-color: #c93441;
+  color: white;
+}
+
+.code-action.preview-button:hover {
+  background: #c83240;
+}
+
 .content pre {
   background: #090909;
-  border: 1px solid var(--border);
+  margin: 0;
   padding: 15px;
-  border-radius: 10px;
   overflow-x: auto;
   white-space: pre;
+  border: 0;
+  border-radius: 0;
 }
 
 .content code {
@@ -228,6 +284,62 @@ select:focus, input:focus, textarea:focus {
 .content th {
   border: 1px solid var(--border);
   padding: 8px;
+}
+
+/* HTML PREVIEW */
+
+.preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,.82);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.preview-overlay.active {
+  display: flex;
+}
+
+.preview-window {
+  width: min(1100px, 100%);
+  height: min(800px, 90vh);
+  background: #181818;
+  border: 1px solid #444;
+  border-radius: 13px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.preview-header {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  border-bottom: 1px solid #383838;
+}
+
+.preview-header strong {
+  font-size: 14px;
+}
+
+.preview-close {
+  background: #333;
+  color: white;
+  border: 0;
+  border-radius: 7px;
+  padding: 8px 13px;
+}
+
+.preview-frame {
+  width: 100%;
+  flex: 1;
+  border: 0;
+  background: white;
 }
 
 .composer-area {
@@ -347,6 +459,7 @@ select:focus, input:focus, textarea:focus {
   .sidebar { width: 145px; }
   .brand { font-size: 16px; }
   .topbar { padding: 10px; }
+  .preview-overlay { padding: 7px; }
 }
 </style>
 </head>
@@ -391,10 +504,6 @@ select:focus, input:focus, textarea:focus {
   <div class="section-label">Your chats</div>
 
   <div class="history" id="history"></div>
-
-  <div class="status" id="modelStatus">
-    Loading Gemini profiles...
-  </div>
 
 </aside>
 
@@ -476,6 +585,25 @@ select:focus, input:focus, textarea:focus {
 </main>
 </div>
 
+<!-- HTML PREVIEW WINDOW -->
+<div class="preview-overlay" id="previewOverlay">
+  <div class="preview-window">
+    <div class="preview-header">
+      <strong>HTML Preview</strong>
+      <button class="preview-close" onclick="closePreview()">
+        Close ×
+      </button>
+    </div>
+
+    <iframe
+      class="preview-frame"
+      id="previewFrame"
+      sandbox="allow-scripts"
+      title="HTML code preview"
+    ></iframe>
+  </div>
+</div>
+
 <script>
 /* =========================================
    AI SERVICE
@@ -495,7 +623,6 @@ const FALLBACK_GEMINI_MODELS = [
   { id: "gemini-4-neon", name: "Gemini 4 Neon", provider: "Gemini" }
 ];
 
-// Curated Groq chat choices. The UI does not pad the list with retired or speech-only IDs.
 const FALLBACK_GROQ_MODELS = [
   { id: "openai/gpt-oss-120b", name: "GPT OSS 120B · Best overall", provider: "Groq" },
   { id: "qwen/qwen3.8-27b", name: "Qwen 3.8 27B · Vision + reasoning", provider: "Groq" },
@@ -779,6 +906,137 @@ function renderMarkdown(text) {
   }
 }
 
+/* =========================================
+   CODE BLOCK BUTTONS
+========================================= */
+
+function enhanceCodeBlocks(container) {
+  const blocks = container.querySelectorAll(".content pre");
+
+  blocks.forEach(pre => {
+    if (pre.parentElement.classList.contains("code-block")) {
+      return;
+    }
+
+    const code = pre.querySelector("code");
+
+    if (!code) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "code-block";
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "code-toolbar";
+
+    const languageLabel = document.createElement("span");
+    languageLabel.className = "code-language";
+
+    const languageClass = Array.from(code.classList)
+      .find(className => className.startsWith("language-"));
+
+    const language = languageClass
+      ? languageClass.replace("language-", "").toLowerCase()
+      : "code";
+
+    languageLabel.textContent = language;
+
+    const actions = document.createElement("div");
+    actions.className = "code-actions";
+
+    const copyButton = document.createElement("button");
+    copyButton.className = "code-action";
+    copyButton.textContent = "Copy";
+    copyButton.type = "button";
+
+    copyButton.addEventListener("click", async () => {
+      const codeText = code.textContent;
+
+      try {
+        await navigator.clipboard.writeText(codeText);
+        copyButton.textContent = "Copied!";
+      } catch (error) {
+        const temporary = document.createElement("textarea");
+        temporary.value = codeText;
+        temporary.style.position = "fixed";
+        temporary.style.opacity = "0";
+
+        document.body.appendChild(temporary);
+        temporary.select();
+
+        try {
+          document.execCommand("copy");
+          copyButton.textContent = "Copied!";
+        } catch (copyError) {
+          copyButton.textContent = "Copy failed";
+        }
+
+        temporary.remove();
+      }
+
+      setTimeout(() => {
+        copyButton.textContent = "Copy";
+      }, 1800);
+    });
+
+    actions.appendChild(copyButton);
+
+    const isHTML =
+      language === "html" ||
+      language === "htm" ||
+      (
+        language === "code" &&
+        /<!doctype html|<html[\s>]|<body[\s>]/i.test(code.textContent)
+      );
+
+    if (isHTML) {
+      const previewButton = document.createElement("button");
+
+      previewButton.className =
+        "code-action preview-button";
+
+      previewButton.textContent = "Preview";
+      previewButton.type = "button";
+
+      previewButton.addEventListener("click", () => {
+        openPreview(code.textContent);
+      });
+
+      actions.appendChild(previewButton);
+    }
+
+    toolbar.append(languageLabel, actions);
+
+    pre.parentNode.insertBefore(wrapper, pre);
+    wrapper.append(toolbar, pre);
+  });
+}
+
+function openPreview(html) {
+  $("previewFrame").srcdoc = html;
+  $("previewOverlay").classList.add("active");
+}
+
+function closePreview() {
+  $("previewOverlay").classList.remove("active");
+  $("previewFrame").srcdoc = "";
+}
+
+$("previewOverlay").addEventListener("click", event => {
+  if (event.target === $("previewOverlay")) {
+    closePreview();
+  }
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    closePreview();
+  }
+});
+
+/* =========================================
+   CHAT RENDERING
+========================================= */
+
 function renderChat() {
   const chat = currentChat();
 
@@ -839,6 +1097,8 @@ function addMessage(role, content) {
 
   $("messages").appendChild(message);
 
+  enhanceCodeBlocks(message);
+
   $("messages").scrollTop =
     $("messages").scrollHeight;
 }
@@ -858,16 +1118,12 @@ function handleEnter(event) {
 ========================================= */
 
 async function loadModels() {
-  const status = $("modelStatus");
-
   const selectedProvider = $("provider").value;
+
   const selectedModel =
     currentChat()?.model ||
     $("model").value ||
     "";
-
-  status.textContent =
-    "Models ready. Syncing provider catalog...";
 
   const controller = new AbortController();
 
@@ -923,10 +1179,6 @@ async function loadModels() {
 
     updateModels(selectedModel, selectedProvider);
 
-    status.textContent =
-      `${groups.Gemini.length} Gemini profiles · ` +
-      `${groups.Groq.length} Groq models`;
-
   } catch (error) {
     console.warn(
       "Using built-in model lists:",
@@ -942,10 +1194,6 @@ async function loadModels() {
     }
 
     updateModels(selectedModel, selectedProvider);
-
-    status.textContent =
-      `${groups.Gemini.length} Gemini profiles · ` +
-      `${groups.Groq.length} Groq models (saved list)`;
 
   } finally {
     clearTimeout(timeout);
@@ -1028,9 +1276,6 @@ function updateProviderView() {
     isEncyclopedia ? "none" : "block";
 
   $("model").style.display =
-    isEncyclopedia ? "none" : "block";
-
-  $("modelStatus").style.display =
     isEncyclopedia ? "none" : "block";
 
   $("messages").style.display =
@@ -1449,6 +1694,8 @@ async function sendMessage() {
 
     loading.replaceWith(assistantMessage);
     loading = assistantMessage;
+
+    enhanceCodeBlocks(assistantMessage);
 
     chat.messages.push({
       role: "assistant",
